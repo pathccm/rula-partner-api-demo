@@ -26,7 +26,7 @@ jobs:
 
       - name: Check for breaking changes
         if: steps.base-spec.outputs.exists == 'true'
-        uses: oasdiff/oasdiff-action/breaking@v1
+        uses: oasdiff/oasdiff-action/breaking@main
         with:
           base: /tmp/base-spec.yaml
           revision: openapi/partner-scheduling.yaml
