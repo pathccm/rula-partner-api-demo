@@ -1,0 +1,38 @@
+[
+  {
+    "provider_uuid": "provider-001-mock",
+    "start_time": "2026-04-14T09:00:00-07:00",
+    "end_time": "2026-04-14T10:00:00-07:00",
+    "appointment_type": "telemedicine"
+  },
+  {
+    "provider_uuid": "provider-001-mock",
+    "start_time": "2026-04-14T11:00:00-07:00",
+    "end_time": "2026-04-14T12:00:00-07:00",
+    "appointment_type": "telemedicine"
+  },
+  {
+    "provider_uuid": "provider-001-mock",
+    "start_time": "2026-04-14T14:00:00-07:00",
+    "end_time": "2026-04-14T15:00:00-07:00",
+    "appointment_type": "in_person"
+  },
+  {
+    "provider_uuid": "provider-001-mock",
+    "start_time": "2026-04-15T09:00:00-07:00",
+    "end_time": "2026-04-15T10:00:00-07:00",
+    "appointment_type": "telemedicine"
+  },
+  {
+    "provider_uuid": "provider-001-mock",
+    "start_time": "2026-04-15T15:00:00-07:00",
+    "end_time": "2026-04-15T16:00:00-07:00",
+    "appointment_type": "in_person"
+  },
+  {
+    "provider_uuid": "provider-001-mock",
+    "start_time": "2026-04-16T10:00:00-07:00",
+    "end_time": "2026-04-16T11:00:00-07:00",
+    "appointment_type": "telemedicine"
+  }
+]

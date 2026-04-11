@@ -1,0 +1,20 @@
+name: OpenAPI Breaking Change Detection
+
+on:
+  pull_request:
+    paths:
+      - "openapi/**"
+
+jobs:
+  breaking-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for breaking changes
+        uses: oasdiff/oasdiff-action/breaking@main
+        with:
+          base: "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.pull_request.base.sha }}/openapi/partner-scheduling.yaml"
+          revision: "openapi/partner-scheduling.yaml"
+          fail-on-diff: true

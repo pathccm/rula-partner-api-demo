@@ -1,0 +1,32 @@
+[
+  {
+    "uuid": "provider-001-mock",
+    "first_name": "Sarah",
+    "last_name": "Chen",
+    "specialty": "Therapy",
+    "state": "CA",
+    "insurance_carriers": ["Aetna", "BlueCross", "Cigna"],
+    "care_types": ["Individual", "Couples"],
+    "appointment_types": ["telemedicine", "in_person"]
+  },
+  {
+    "uuid": "provider-002-mock",
+    "first_name": "James",
+    "last_name": "Okafor",
+    "specialty": "Psychiatry",
+    "state": "CA",
+    "insurance_carriers": ["Aetna", "United", "Humana"],
+    "care_types": ["Individual", "Psychiatry"],
+    "appointment_types": ["telemedicine"]
+  },
+  {
+    "uuid": "provider-003-mock",
+    "first_name": "Maria",
+    "last_name": "Rivera",
+    "specialty": "Therapy",
+    "state": "CA",
+    "insurance_carriers": ["BlueCross", "Cigna", "Magellan"],
+    "care_types": ["Individual", "Family"],
+    "appointment_types": ["telemedicine", "in_person"]
+  }
+]
