@@ -16,8 +16,9 @@ export const mockHandlers = {
     return loadFixture('providers')
   },
 
-  getSlots(_providerUuid: string) {
-    return loadFixture('slots')
+  getSlots(providerUuid: string) {
+    const slots = loadFixture<Array<{ provider_uuid: string }>>('slots')
+    return slots.filter((slot) => slot.provider_uuid === providerUuid)
   },
 
   createPatient(data: { first_name: string; last_name: string; email: string }) {

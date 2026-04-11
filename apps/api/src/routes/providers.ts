@@ -17,7 +17,17 @@ export async function providersRoutes(app: FastifyInstance) {
       const query = request.query as Record<string, string>
       return mockHandlers.getSlots(query.provider_uuid ?? '')
     }
-    const params = new URLSearchParams(request.query as Record<string, string>)
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(
+      request.query as Record<string, string | string[] | undefined | null>,
+    )) {
+      if (value == null) continue
+      if (Array.isArray(value)) {
+        for (const item of value) params.append(key, String(item))
+      } else {
+        params.append(key, String(value))
+      }
+    }
     return partnerApiClient.request(`/v1/providers/slots?${params.toString()}`)
   })
 

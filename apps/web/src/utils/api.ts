@@ -81,7 +81,7 @@ export const api = {
       provider_uuid: providerUuid,
       two_letter_state: state,
     })
-    if (appointmentType) params.set('appointment_types[]', appointmentType)
+    if (appointmentType) params.append('location_type', appointmentType)
     return request<Slot[]>(`/v1/providers/slots?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     })

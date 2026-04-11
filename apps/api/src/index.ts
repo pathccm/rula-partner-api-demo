@@ -31,9 +31,14 @@ await app.register(patientsRoutes)
 await app.register(appointmentsRoutes)
 
 // Error handler
-app.setErrorHandler((error: Error & { statusCode?: number }, _request, reply) => {
+app.setErrorHandler((error: Error & { statusCode?: number; status?: number }, _request, reply) => {
   app.log.error(error)
-  const statusCode = typeof error.statusCode === 'number' ? error.statusCode : 500
+  const statusCode =
+    typeof error.statusCode === 'number'
+      ? error.statusCode
+      : typeof error.status === 'number'
+        ? error.status
+        : 500
   reply.status(statusCode).send({ error: error.message })
 })
 
