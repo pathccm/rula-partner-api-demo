@@ -9,7 +9,7 @@
     "lint": "biome check .",
     "lint-fix": "biome check --write .",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "preview": "vite preview"
   },

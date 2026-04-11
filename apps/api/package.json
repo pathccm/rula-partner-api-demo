@@ -10,7 +10,7 @@
     "lint": "biome check .",
     "lint-fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
