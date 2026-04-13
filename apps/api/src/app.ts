@@ -1,4 +1,8 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import cors from '@fastify/cors'
+import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { config } from './config.js'
 import { authPlugin, verifyJwt } from './plugins/auth.js'
@@ -6,6 +10,9 @@ import { appointmentsRoutes } from './routes/appointments.js'
 import { insurancesRoutes } from './routes/insurances.js'
 import { patientsRoutes } from './routes/patients.js'
 import { providersRoutes } from './routes/providers.js'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const WEB_DIST = join(__dirname, '../../web/dist')
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInstance> {
@@ -27,6 +34,19 @@ export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInst
   await app.register(providersRoutes, routeOptions)
   await app.register(patientsRoutes, routeOptions)
   await app.register(appointmentsRoutes, routeOptions)
+
+  // Serve the built React app when the dist folder exists
+  if (existsSync(WEB_DIST)) {
+    await app.register(fastifyStatic, {
+      root: WEB_DIST,
+      wildcard: false,
+    })
+
+    // SPA fallback — any unmatched route returns index.html
+    app.setNotFoundHandler((_request, reply) => {
+      reply.sendFile('index.html')
+    })
+  }
 
   app.setErrorHandler(
     (error: Error & { statusCode?: number; status?: number }, _request, reply) => {
