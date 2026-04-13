@@ -60,6 +60,7 @@ export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInst
 
   app.setErrorHandler(
     (error: Error & { statusCode?: number; status?: number }, _request, reply) => {
+      app.log.error(error)
       const statusCode =
         typeof error.statusCode === 'number'
           ? error.statusCode
