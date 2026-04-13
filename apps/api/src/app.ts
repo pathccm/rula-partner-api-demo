@@ -29,11 +29,14 @@ export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInst
 
   app.get('/health', async () => ({ status: 'ok', mockMode: config.USE_MOCK_API }))
 
-  const routeOptions = { preHandler: verifyJwt }
-  await app.register(insurancesRoutes, routeOptions)
-  await app.register(providersRoutes, routeOptions)
-  await app.register(patientsRoutes, routeOptions)
-  await app.register(appointmentsRoutes, routeOptions)
+  // Encapsulated scope: verifyJwt hook applies to all proxy routes
+  await app.register(async (sub) => {
+    sub.addHook('preHandler', verifyJwt)
+    await sub.register(insurancesRoutes)
+    await sub.register(providersRoutes)
+    await sub.register(patientsRoutes)
+    await sub.register(appointmentsRoutes)
+  })
 
   // Serve the built React app when the dist folder exists
   if (existsSync(WEB_DIST)) {
