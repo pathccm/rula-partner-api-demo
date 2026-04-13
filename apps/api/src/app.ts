@@ -45,9 +45,16 @@ export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInst
       wildcard: false,
     })
 
-    // SPA fallback — any unmatched route returns index.html
-    app.setNotFoundHandler((_request, reply) => {
-      reply.sendFile('index.html')
+    // SPA fallback — only for browser navigation (GET + Accept: text/html).
+    // API routes that don't exist still get a JSON 404.
+    app.setNotFoundHandler((request, reply) => {
+      const isBrowserNav =
+        request.method === 'GET' && request.headers.accept?.includes('text/html')
+      if (isBrowserNav) {
+        reply.sendFile('index.html')
+      } else {
+        reply.status(404).send({ error: 'Not found' })
+      }
     })
   }
 
