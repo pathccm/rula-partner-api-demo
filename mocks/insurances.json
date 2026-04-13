@@ -1,0 +1,9 @@
+[
+  { "name": "Aetna", "uuid": "insurance-aetna-mock" },
+  { "name": "BlueCross BlueShield", "uuid": "insurance-bcbs-mock" },
+  { "name": "Cigna", "uuid": "insurance-cigna-mock" },
+  { "name": "Humana", "uuid": "insurance-humana-mock" },
+  { "name": "Magellan Health", "uuid": "insurance-magellan-mock" },
+  { "name": "United Healthcare", "uuid": "insurance-united-mock" },
+  { "name": "Optum", "uuid": "insurance-optum-mock" }
+]

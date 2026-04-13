@@ -1,0 +1,33 @@
+name: OpenAPI Breaking Change Detection
+
+on:
+  pull_request:
+    paths:
+      - "openapi/**"
+
+jobs:
+  breaking-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract base spec
+        id: base-spec
+        run: |
+          if git show origin/${{ github.base_ref }}:openapi/partner-scheduling.yaml > /tmp/base-spec.yaml 2>/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No base spec found on ${{ github.base_ref }} — skipping breaking change check (first addition)"
+          fi
+
+      - name: Check for breaking changes
+        if: steps.base-spec.outputs.exists == 'true'
+        uses: oasdiff/oasdiff-action/breaking@main
+        with:
+          base: /tmp/base-spec.yaml
+          revision: openapi/partner-scheduling.yaml
+          fail-on: ERR

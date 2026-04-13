@@ -1,0 +1,234 @@
+.app-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.app-header {
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1.5rem;
+}
+
+.disclaimer {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0.25rem 0 1rem;
+}
+
+.header-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auth-button {
+  padding: 0.7rem 1.8rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-button.small {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.login-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.login-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.logout-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Step indicator */
+.step-indicator {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.step.active {
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Forms */
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 420px;
+}
+
+.search-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+/* Lists */
+.provider-list,
+.slot-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.provider-item,
+.slot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.specialty,
+.tag {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 0.5rem;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: #646cff;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.selected-slot {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Confirmation */
+.confirmation {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.checkmark {
+  font-size: 3rem;
+  color: #48bb78;
+}
+
+.appt-details {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.appt-details p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+/* Error */
+.error-banner {
+  background: rgba(245, 87, 108, 0.15);
+  border: 1px solid rgba(245, 87, 108, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #f5576c;
+  font-size: 0.9rem;
+}
+
+/* Scheduling page */
+.scheduling-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.results {
+  margin-top: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app-container {
+    padding: 1rem;
+  }
+
+  .provider-item,
+  .slot-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .disclaimer {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  .card {
+    background: white;
+    border-color: #e5e7eb;
+  }
+
+  .specialty,
+  .tag {
+    color: #555;
+    background: #f0f0f0;
+  }
+
+  .provider-item,
+  .slot-item {
+    background: #fafafa;
+    border-color: #e5e7eb;
+  }
+}
