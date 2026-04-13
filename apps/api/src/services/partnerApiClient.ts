@@ -1,14 +1,6 @@
 import { config } from '../config.js'
+import { PartnerApiError } from '../errors.js'
 import { getPartnerToken } from './tokenService.js'
-
-export class PartnerApiError extends Error {
-  readonly status: number
-  constructor(status: number, message: string) {
-    super(message)
-    this.name = 'PartnerApiError'
-    this.status = status
-  }
-}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getPartnerToken()
@@ -31,4 +23,5 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export { PartnerApiError }
 export const partnerApiClient = { request }

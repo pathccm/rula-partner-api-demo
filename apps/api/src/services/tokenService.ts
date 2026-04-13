@@ -1,4 +1,5 @@
 import { config } from '../config.js'
+import { PartnerApiError } from '../errors.js'
 
 interface TokenResponse {
   access_token: string
@@ -8,11 +9,15 @@ interface TokenResponse {
 
 let cachedToken: { value: string; expiresAt: number } | null = null
 
+export function resetTokenCache() {
+  cachedToken = null
+}
+
 export async function getPartnerToken(): Promise<string> {
   if (config.USE_MOCK_API) return 'mock-token'
 
   const now = Date.now()
-  if (cachedToken && cachedToken.expiresAt > now + 30_000) {
+  if (cachedToken && cachedToken.expiresAt > now + 60_000) {
     return cachedToken.value
   }
 
@@ -28,8 +33,7 @@ export async function getPartnerToken(): Promise<string> {
   })
 
   if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Token fetch failed ${res.status}: ${body}`)
+    throw new PartnerApiError(502, 'Auth service unavailable')
   }
 
   const data = (await res.json()) as TokenResponse
