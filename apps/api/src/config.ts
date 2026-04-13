@@ -15,6 +15,13 @@ const envSchema = z.object({
   PARTNER_API_CLIENT_ID: z.string().optional(),
   PARTNER_API_CLIENT_SECRET: z.string().optional(),
 
+  // Auth0 config for verifying incoming frontend JWTs
+  AUTH0_ISSUER_DOMAIN: z.string().optional(),
+  AUTH0_AUDIENCE_URL: z.url().optional(),
+
+  // Timeout for outbound partner API requests (ms)
+  PARTNER_API_TIMEOUT_MS: z.coerce.number().default(10_000),
+
   APP_BASE_URL: z.url().default('http://localhost:3000'),
 })
 
@@ -26,6 +33,8 @@ if (!config.USE_MOCK_API) {
     'AUTH0_TOKEN_URL',
     'PARTNER_API_CLIENT_ID',
     'PARTNER_API_CLIENT_SECRET',
+    'AUTH0_ISSUER_DOMAIN',
+    'AUTH0_AUDIENCE_URL',
   ] as const
   for (const key of required) {
     if (!config[key]) {
