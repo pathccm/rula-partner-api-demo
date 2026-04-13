@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
-import Fastify, { type FastifyInstance } from 'fastify'
+import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import { config } from './config.js'
 import { authPlugin, verifyJwt } from './plugins/auth.js'
 import { appointmentsRoutes } from './routes/appointments.js'
@@ -14,8 +14,9 @@ import { providersRoutes } from './routes/providers.js'
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const WEB_DIST = join(__dirname, '../../web/dist')
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInstance> {
+export async function buildApp(
+  opts: Pick<FastifyServerOptions, 'logger'> = {},
+): Promise<FastifyInstance> {
   const app = Fastify({
     logger: opts.logger ?? false,
   })
@@ -48,8 +49,7 @@ export async function buildApp(opts: { logger?: any } = {}): Promise<FastifyInst
     // SPA fallback — only for browser navigation (GET + Accept: text/html).
     // API routes that don't exist still get a JSON 404.
     app.setNotFoundHandler((request, reply) => {
-      const isBrowserNav =
-        request.method === 'GET' && request.headers.accept?.includes('text/html')
+      const isBrowserNav = request.method === 'GET' && request.headers.accept?.includes('text/html')
       if (isBrowserNav) {
         reply.sendFile('index.html')
       } else {
