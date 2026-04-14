@@ -4,7 +4,8 @@ const envSchema = z.object({
   VITE_AUTH0_ISSUER_DOMAIN: z.string().min(1, 'Auth0 domain is required'),
   VITE_AUTH0_AUDIENCE_URL: z.url(),
   VITE_AUTH0_CLIENT_ID: z.string().min(1, 'Auth0 client ID is required'),
-  VITE_API_BASE_URL: z.string().min(1).default('http://localhost:4000'),
+  // Empty string means same origin (when served from the API). Set to http://localhost:4000 for local dev.
+  VITE_API_BASE_URL: z.string().default(''),
 })
 
 const rawConfig = envSchema.parse(import.meta.env)
