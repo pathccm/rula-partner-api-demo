@@ -10,7 +10,8 @@
     "lint-fix": "turbo lint-fix",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "generate:client": "pnpm --filter @partner-scheduling-demo/api-client generate"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

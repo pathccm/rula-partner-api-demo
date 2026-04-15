@@ -7,6 +7,17 @@ type Step = 'search' | 'slots' | 'patient' | 'confirmed'
 
 const US_STATES = ['CA', 'NY', 'TX', 'FL', 'WA', 'OR', 'CO', 'IL', 'MA', 'PA']
 
+// Pre-filled demo values — real data must never be entered here
+const DEMO_PATIENT = {
+  partner_patient_id: 'demo-patient-001',
+  first_name: 'Demo',
+  last_name: 'Patient',
+  phone_number: '5550000001',
+  email: 'demo.patient@example.com',
+  date_of_birth: '1990-01-01',
+  location: 'CA',
+}
+
 export function SchedulingPage() {
   const { getAccessTokenSilently } = useAuth()
   const [step, setStep] = useState<Step>('search')
@@ -23,17 +34,13 @@ export function SchedulingPage() {
   const [slots, setSlots] = useState<Slot[]>([])
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
 
-  // Patient form
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
+  // Patient form (pre-filled with demo values)
+  const [patientData, setPatientData] = useState(DEMO_PATIENT)
 
   // Result
   const [appointment, setAppointment] = useState<Appointment | null>(null)
 
-  const getToken = useCallback(async () => {
-    return getAccessTokenSilently()
-  }, [getAccessTokenSilently])
+  const getToken = useCallback(async () => getAccessTokenSilently(), [getAccessTokenSilently])
 
   async function handleSearch(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -41,11 +48,11 @@ export function SchedulingPage() {
     setLoading(true)
     try {
       const token = await getToken()
-      const results = await api.searchProviders(
-        { state, insurance_carrier_name: insurance || undefined },
+      const res = await api.searchProviders(
+        { two_letter_state: state, insurance: insurance || undefined },
         token,
       )
-      setProviders(results)
+      setProviders(res.providers)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed')
     } finally {
@@ -59,8 +66,8 @@ export function SchedulingPage() {
     setLoading(true)
     try {
       const token = await getToken()
-      const results = await api.getSlots(provider.uuid, state, token)
-      setSlots(results)
+      const res = await api.getSlots(provider.provider_id, state, token)
+      setSlots(res.slots)
       setStep('slots')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load slots')
@@ -81,17 +88,17 @@ export function SchedulingPage() {
     setLoading(true)
     try {
       const token = await getToken()
-      const patient = await api.createPatient(
-        { first_name: firstName, last_name: lastName, email },
-        token,
-      )
+      const patient = await api.createPatient(patientData, token)
       const appt = await api.bookAppointment(
         {
-          provider_uuid: selectedProvider.uuid,
-          patient_uuid: patient.uuid,
-          start_time: selectedSlot.start_time,
-          end_time: selectedSlot.end_time,
-          appointment_type: selectedSlot.appointment_type,
+          patient_id: patient.patient_id,
+          provider_id: selectedProvider.provider_id,
+          appointment_slot: selectedSlot.start_time_iso,
+          appointment_details: {
+            is_virtual: selectedSlot.location === 'telemedicine',
+            appointment_type: 'Individual',
+            two_letter_state: state,
+          },
         },
         token,
       )
@@ -110,9 +117,7 @@ export function SchedulingPage() {
     setSelectedProvider(null)
     setSlots([])
     setSelectedSlot(null)
-    setFirstName('')
-    setLastName('')
-    setEmail('')
+    setPatientData(DEMO_PATIENT)
     setAppointment(null)
     setError(null)
   }
@@ -162,12 +167,12 @@ export function SchedulingPage() {
               <h3>Results ({providers.length})</h3>
               <ul className="provider-list">
                 {providers.map((p) => (
-                  <li key={p.uuid} className="provider-item">
+                  <li key={p.provider_id} className="provider-item">
                     <div>
                       <strong>
                         {p.first_name} {p.last_name}
                       </strong>
-                      <span className="specialty">{p.specialty}</span>
+                      {p.specialty && <span className="specialty">{p.specialty}</span>}
                     </div>
                     <button
                       type="button"
@@ -196,10 +201,10 @@ export function SchedulingPage() {
           {slots.length === 0 && !loading && <p>No slots available.</p>}
           <ul className="slot-list">
             {slots.map((slot) => (
-              <li key={`${slot.start_time}-${slot.appointment_type}`} className="slot-item">
+              <li key={`${slot.start_time_iso}-${slot.location}`} className="slot-item">
                 <div>
-                  <strong>{new Date(slot.start_time).toLocaleString()}</strong>
-                  <span className="tag">{slot.appointment_type.replace('_', ' ')}</span>
+                  <strong>{new Date(slot.start_time_iso).toLocaleString()}</strong>
+                  <span className="tag">{slot.location.replace('_', ' ')}</span>
                 </div>
                 <button
                   type="button"
@@ -220,11 +225,14 @@ export function SchedulingPage() {
             ← Back
           </button>
           <h2>Patient Information</h2>
+          <p className="disclaimer-inline">
+            Demo only — do not enter real patient data. Form is pre-filled with fake demo values.
+          </p>
           <p className="selected-slot">
             Booking:{' '}
             <strong>
-              {new Date(selectedSlot.start_time).toLocaleString()} (
-              {selectedSlot.appointment_type.replace('_', ' ')})
+              {new Date(selectedSlot.start_time_iso).toLocaleString()} (
+              {selectedSlot.location.replace('_', ' ')})
             </strong>
           </p>
           <form onSubmit={handleBook} className="search-form">
@@ -232,8 +240,8 @@ export function SchedulingPage() {
               First Name
               <input
                 type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                value={patientData.first_name}
+                onChange={(e) => setPatientData((d) => ({ ...d, first_name: e.target.value }))}
                 required
               />
             </label>
@@ -241,8 +249,26 @@ export function SchedulingPage() {
               Last Name
               <input
                 type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                value={patientData.last_name}
+                onChange={(e) => setPatientData((d) => ({ ...d, last_name: e.target.value }))}
+                required
+              />
+            </label>
+            <label>
+              Date of Birth
+              <input
+                type="date"
+                value={patientData.date_of_birth}
+                onChange={(e) => setPatientData((d) => ({ ...d, date_of_birth: e.target.value }))}
+                required
+              />
+            </label>
+            <label>
+              Phone
+              <input
+                type="tel"
+                value={patientData.phone_number}
+                onChange={(e) => setPatientData((d) => ({ ...d, phone_number: e.target.value }))}
                 required
               />
             </label>
@@ -250,8 +276,8 @@ export function SchedulingPage() {
               Email
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={patientData.email}
+                onChange={(e) => setPatientData((d) => ({ ...d, email: e.target.value }))}
                 required
               />
             </label>
@@ -269,13 +295,17 @@ export function SchedulingPage() {
             <h2>Appointment Confirmed!</h2>
             <div className="appt-details">
               <p>
-                <strong>Confirmation ID:</strong> {appointment.uuid}
+                <strong>Confirmation ID:</strong> {appointment.appointment_id}
               </p>
               <p>
-                <strong>Date:</strong> {new Date(appointment.start_time).toLocaleString()}
+                <strong>Date:</strong> {new Date(appointment.appointment_slot).toLocaleString()}
               </p>
               <p>
-                <strong>Type:</strong> {appointment.appointment_type.replace('_', ' ')}
+                <strong>Type:</strong> {appointment.appointment_details.appointment_type}
+              </p>
+              <p>
+                <strong>Format:</strong>{' '}
+                {appointment.appointment_details.is_virtual ? 'Telemedicine' : 'In person'}
               </p>
               <p>
                 <strong>Status:</strong> {appointment.status}

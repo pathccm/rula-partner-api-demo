@@ -2,13 +2,19 @@ import type { FastifyInstance } from 'fastify'
 import { config } from '../config.js'
 import { mockHandlers } from '../plugins/mockHandler.js'
 import { partnerApiClient } from '../services/partnerApiClient.js'
+import type {
+  ProviderShowResponse,
+  ProvidersSearchBody,
+  ProvidersSearchResponse,
+  ProvidersSlotsResponse,
+} from '../types.js'
 
 export async function providersRoutes(app: FastifyInstance) {
   app.post('/v1/providers/search', async (request) => {
     if (config.USE_MOCK_API) return mockHandlers.searchProviders()
-    return partnerApiClient.request('/v1/providers/search', {
+    return partnerApiClient.request<ProvidersSearchResponse>('/v1/providers/search', {
       method: 'POST',
-      body: JSON.stringify(request.body),
+      body: JSON.stringify(request.body as ProvidersSearchBody),
     })
   })
 
@@ -28,7 +34,9 @@ export async function providersRoutes(app: FastifyInstance) {
         params.append(key, String(value))
       }
     }
-    return partnerApiClient.request(`/v1/providers/slots?${params.toString()}`)
+    return partnerApiClient.request<ProvidersSlotsResponse>(
+      `/v1/providers/slots?${params.toString()}`,
+    )
   })
 
   app.get<{ Params: { uuid: string } }>('/v1/providers/:uuid', async (request) => {
@@ -41,6 +49,6 @@ export async function providersRoutes(app: FastifyInstance) {
         state: 'CA',
       }
     }
-    return partnerApiClient.request(`/v1/providers/${request.params.uuid}`)
+    return partnerApiClient.request<ProviderShowResponse>(`/v1/providers/${request.params.uuid}`)
   })
 }

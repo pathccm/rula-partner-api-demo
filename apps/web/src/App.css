@@ -19,6 +19,15 @@
   margin: 0.25rem 0 1rem;
 }
 
+.disclaimer-inline {
+  font-size: 0.8rem;
+  color: #f5a623;
+  background: rgba(245, 166, 35, 0.1);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
 .header-auth {
   display: flex;
   align-items: center;
