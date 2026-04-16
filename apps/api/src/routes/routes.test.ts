@@ -128,3 +128,25 @@ describe('proxy routes in mock mode', () => {
     await app.close()
   })
 })
+
+describe('correlation ID', () => {
+  it('echoes x-request-id header back in the response', async () => {
+    const app = await buildApp()
+    const res = await app.inject({
+      method: 'GET',
+      url: '/health',
+      headers: { 'x-request-id': 'test-correlation-123' },
+    })
+    expect(res.headers['x-request-id']).toBe('test-correlation-123')
+    await app.close()
+  })
+
+  it('generates a UUID x-request-id when none is provided', async () => {
+    const app = await buildApp()
+    const res = await app.inject({ method: 'GET', url: '/health' })
+    expect(res.headers['x-request-id']).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    )
+    await app.close()
+  })
+})

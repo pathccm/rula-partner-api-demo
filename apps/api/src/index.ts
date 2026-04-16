@@ -4,6 +4,19 @@ import { config } from './config.js'
 const app = await buildApp({
   logger: {
     level: config.LOG_LEVEL,
+    // Redact PII fields at any depth in logged objects
+    redact: [
+      'req.body.first_name',
+      'req.body.last_name',
+      'req.body.email',
+      'req.body.phone_number',
+      'req.body.date_of_birth',
+      '*.first_name',
+      '*.last_name',
+      '*.email',
+      '*.phone_number',
+      '*.date_of_birth',
+    ],
     transport:
       config.NODE_ENV !== 'production'
         ? { target: 'pino-pretty', options: { colorize: true } }

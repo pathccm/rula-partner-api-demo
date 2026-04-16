@@ -19,6 +19,15 @@ export async function buildApp(
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: opts.logger ?? false,
+    // Use x-request-id header if provided, otherwise generate a UUID.
+    // Fastify includes request.id in every log line automatically.
+    genReqId: (req) => (req.headers['x-request-id'] as string | undefined) ?? crypto.randomUUID(),
+  })
+
+  // Echo the correlation ID back on every response
+  app.addHook('onSend', (_request, reply, _payload, done) => {
+    reply.header('x-request-id', _request.id)
+    done()
   })
 
   await app.register(cors, {
