@@ -5,7 +5,6 @@ import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import { config } from './config.js'
-import { authPlugin, verifyJwt } from './plugins/auth.js'
 import { appointmentsRoutes } from './routes/appointments.js'
 import { insurancesRoutes } from './routes/insurances.js'
 import { patientsRoutes } from './routes/patients.js'
@@ -35,18 +34,12 @@ export async function buildApp(
     credentials: true,
   })
 
-  await app.register(authPlugin)
-
   app.get('/health', async () => ({ status: 'ok', mockMode: config.USE_MOCK_API }))
 
-  // Encapsulated scope: verifyJwt hook applies to all proxy routes
-  await app.register(async (sub) => {
-    sub.addHook('preHandler', verifyJwt)
-    await sub.register(insurancesRoutes)
-    await sub.register(providersRoutes)
-    await sub.register(patientsRoutes)
-    await sub.register(appointmentsRoutes)
-  })
+  await app.register(insurancesRoutes)
+  await app.register(providersRoutes)
+  await app.register(patientsRoutes)
+  await app.register(appointmentsRoutes)
 
   // Serve the built React app when the dist folder exists
   if (existsSync(WEB_DIST)) {

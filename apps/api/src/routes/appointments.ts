@@ -7,7 +7,10 @@ import type { AppointmentsCreateBody, AppointmentsCreateResponse } from '../type
 export async function appointmentsRoutes(app: FastifyInstance) {
   app.post('/v1/appointments', async (request) => {
     const body = request.body as AppointmentsCreateBody
-    if (config.USE_MOCK_API) return mockHandlers.createAppointment(body)
+    if (config.USE_MOCK_API) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      return mockHandlers.createAppointment(body)
+    }
     return partnerApiClient.request<AppointmentsCreateResponse>('/v1/appointments', {
       method: 'POST',
       body: JSON.stringify(body),

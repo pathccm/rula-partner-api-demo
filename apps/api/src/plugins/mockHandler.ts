@@ -13,15 +13,6 @@ function loadFixture<T>(name: string): T {
 }
 
 export const mockHandlers = {
-  searchProviders() {
-    return loadFixture('providers')
-  },
-
-  getSlots(providerId: string) {
-    const slots = loadFixture<Array<{ provider_id: string }>>('slots')
-    return { slots: slots.filter((slot) => slot.provider_id === providerId) }
-  },
-
   createPatient(data: PatientCreateBody) {
     return {
       patient_id: `mock-patient-${Date.now()}`,
@@ -40,7 +31,7 @@ export const mockHandlers = {
     }
   },
 
-  getInsurances() {
-    return loadFixture('insurances')
+  getPatientAppointments(_patientId: string) {
+    return loadFixture('patient-appointments')
   },
 }

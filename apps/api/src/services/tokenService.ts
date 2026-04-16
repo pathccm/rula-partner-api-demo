@@ -14,8 +14,6 @@ export function resetTokenCache() {
 }
 
 export async function getPartnerToken(): Promise<string> {
-  if (config.USE_MOCK_API) return 'mock-token'
-
   const now = Date.now()
   if (cachedToken && cachedToken.expiresAt > now + 60_000) {
     return cachedToken.value
@@ -28,12 +26,13 @@ export async function getPartnerToken(): Promise<string> {
       grant_type: 'client_credentials',
       client_id: config.PARTNER_API_CLIENT_ID,
       client_secret: config.PARTNER_API_CLIENT_SECRET,
-      audience: config.PARTNER_API_BASE_URL,
+      audience: config.PARTNER_API_AUDIENCE,
     }),
   })
 
   if (!res.ok) {
-    throw new PartnerApiError(502, 'Auth service unavailable')
+    const body = await res.text()
+    throw new PartnerApiError(502, `Auth service unavailable (${res.status}): ${body}`)
   }
 
   const data = (await res.json()) as TokenResponse

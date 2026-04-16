@@ -19,7 +19,7 @@ export async function patientsRoutes(app: FastifyInstance) {
   })
 
   app.get<{ Params: { uuid: string } }>('/v1/patients/:uuid/appointments', async (request) => {
-    if (config.USE_MOCK_API) return []
+    if (config.USE_MOCK_API) return mockHandlers.getPatientAppointments(request.params.uuid)
     return partnerApiClient.request<PatientAppointmentsResponse>(
       `/v1/patients/${request.params.uuid}/appointments`,
     )
