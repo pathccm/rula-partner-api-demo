@@ -24,70 +24,72 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export interface ProviderSearchParams {
-  state: string
-  insurance_carrier_name?: string
-  specialty?: string
-}
+// Types aligned to the partner-scheduling-api spec (v0.23.2)
 
 export interface Provider {
-  uuid: string
+  provider_id: string
   first_name: string
   last_name: string
-  specialty: string
-  state: string
+  specialty?: string
+  state?: string
 }
 
 export interface Slot {
-  start_time: string
-  end_time: string
-  appointment_type: 'in_person' | 'telemedicine'
-  provider_uuid: string
+  provider_id: string
+  start_time_iso: string
+  duration_mins: number
+  location: 'in_person' | 'telemedicine'
 }
 
 export interface Patient {
-  uuid: string
-  first_name: string
-  last_name: string
-  email: string
+  patient_id: string
+  partner_patient_id: string
 }
 
 export interface Appointment {
-  uuid: string
-  provider_uuid: string
-  patient_uuid: string
-  start_time: string
-  end_time: string
-  appointment_type: 'in_person' | 'telemedicine'
+  appointment_id: string
+  provider_id: string
+  patient_id: string
+  appointment_slot: string
+  appointment_details: {
+    is_virtual: boolean
+    appointment_type: string
+    two_letter_state: string
+  }
   status: string
 }
 
 export const api = {
-  searchProviders(params: ProviderSearchParams, token: string) {
-    return request<Provider[]>('/v1/providers/search', {
+  searchProviders(params: { two_letter_state: string; insurance?: string }, token: string) {
+    return request<{ providers: Provider[] }>('/v1/providers/search', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { Authorization: `Bearer ${token}` },
     })
   },
 
-  getSlots(
-    providerUuid: string,
-    state: string,
-    token: string,
-    appointmentType?: 'in_person' | 'telemedicine',
-  ) {
+  getSlots(providerId: string, state: string, token: string) {
     const params = new URLSearchParams({
-      provider_uuid: providerUuid,
+      provider_uuid: providerId,
       two_letter_state: state,
     })
-    if (appointmentType) params.append('location_type', appointmentType)
-    return request<Slot[]>(`/v1/providers/slots?${params.toString()}`, {
+    return request<{ slots: Slot[] }>(`/v1/providers/slots?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
   },
 
-  createPatient(data: { first_name: string; last_name: string; email: string }, token: string) {
+  createPatient(
+    data: {
+      partner_patient_id: string
+      first_name: string
+      last_name: string
+      phone_number: string
+      email: string
+      date_of_birth: string
+      location: string
+    },
+    token: string,
+  ) {
     return request<Patient>('/v1/patients', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -97,11 +99,14 @@ export const api = {
 
   bookAppointment(
     data: {
-      provider_uuid: string
-      patient_uuid: string
-      start_time: string
-      end_time: string
-      appointment_type: 'in_person' | 'telemedicine'
+      patient_id: string
+      provider_id: string
+      appointment_slot: string
+      appointment_details: {
+        is_virtual: boolean
+        appointment_type: 'Individual' | 'Couples' | 'Family' | '15 min Consult' | 'Psychiatry'
+        two_letter_state: string
+      }
     },
     token: string,
   ) {

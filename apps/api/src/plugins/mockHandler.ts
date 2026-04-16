@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { AppointmentsCreateBody, PatientCreateBody } from '../types.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const MOCKS_DIR = join(__dirname, '../../../../mocks')
@@ -16,28 +17,25 @@ export const mockHandlers = {
     return loadFixture('providers')
   },
 
-  getSlots(providerUuid: string) {
-    const slots = loadFixture<Array<{ provider_uuid: string }>>('slots')
-    return slots.filter((slot) => slot.provider_uuid === providerUuid)
+  getSlots(providerId: string) {
+    const slots = loadFixture<Array<{ provider_id: string }>>('slots')
+    return { slots: slots.filter((slot) => slot.provider_id === providerId) }
   },
 
-  createPatient(data: { first_name: string; last_name: string; email: string }) {
+  createPatient(data: PatientCreateBody) {
     return {
-      uuid: `mock-patient-${Date.now()}`,
-      ...data,
+      patient_id: `mock-patient-${Date.now()}`,
+      partner_patient_id: data.partner_patient_id,
     }
   },
 
-  createAppointment(data: {
-    provider_uuid: string
-    patient_uuid: string
-    start_time: string
-    end_time: string
-    appointment_type: string
-  }) {
+  createAppointment(data: AppointmentsCreateBody) {
     return {
-      uuid: `mock-appt-${Date.now()}`,
-      ...data,
+      appointment_id: `mock-appt-${Date.now()}`,
+      provider_id: data.provider_id,
+      patient_id: data.patient_id,
+      appointment_slot: data.appointment_slot,
+      appointment_details: data.appointment_details,
       status: 'confirmed',
     }
   },

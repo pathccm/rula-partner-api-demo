@@ -154,8 +154,19 @@ This demo is not intended for production deployment. For a quick cloud demo:
 
 ---
 
-## OpenAPI docs
+## OpenAPI spec and typed client
 
-The partner API spec used in this demo is at [`openapi/partner-scheduling.yaml`](openapi/partner-scheduling.yaml).
+> Tested against partner-scheduling-api spec **v0.23.2**
+
+The committed spec is at [`openapi/partner-scheduling.yaml`](openapi/partner-scheduling.yaml).
+All proxy route request/response types are generated from it — no manual `any` casts.
 
 View it interactively: paste the file contents into [editor.swagger.io](https://editor.swagger.io) or [redocly.com/redoc](https://redocly.com/redoc/).
+
+### Updating the spec
+
+Replace `openapi/partner-scheduling.yaml` with the new spec, then:
+
+1. Run `pnpm generate:client` — regenerates `packages/api-client/src/generated.ts`
+2. Fix any TypeScript errors surfaced by the new types
+3. Update the version note above and commit both files

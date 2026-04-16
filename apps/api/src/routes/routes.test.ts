@@ -78,9 +78,9 @@ describe('proxy routes in mock mode', () => {
       url: '/v1/providers/slots?provider_uuid=provider-001-mock&two_letter_state=CA',
     })
     expect(res.statusCode).toBe(200)
-    const body = res.json<Array<{ start_time: string }>>()
-    expect(Array.isArray(body)).toBe(true)
-    expect(body[0]).toHaveProperty('start_time')
+    const body = res.json<{ slots: Array<{ start_time_iso: string }> }>()
+    expect(Array.isArray(body.slots)).toBe(true)
+    expect(body.slots[0]).toHaveProperty('start_time_iso')
     await app.close()
   })
 
@@ -89,12 +89,19 @@ describe('proxy routes in mock mode', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/v1/patients',
-      payload: { first_name: 'Demo', last_name: 'User', email: 'demo@example.com' },
+      payload: {
+        partner_patient_id: 'demo-001',
+        first_name: 'Demo',
+        last_name: 'User',
+        phone_number: '5550000001',
+        email: 'demo@example.com',
+        date_of_birth: '1990-01-01',
+        location: 'CA',
+      },
     })
     expect(res.statusCode).toBe(200)
-    const body = res.json<{ uuid: string; first_name: string }>()
-    expect(body).toHaveProperty('uuid')
-    expect(body.first_name).toBe('Demo')
+    const body = res.json<{ patient_id: string }>()
+    expect(body).toHaveProperty('patient_id')
     await app.close()
   })
 
@@ -104,16 +111,19 @@ describe('proxy routes in mock mode', () => {
       method: 'POST',
       url: '/v1/appointments',
       payload: {
-        provider_uuid: 'provider-001-mock',
-        patient_uuid: 'patient-001-mock',
-        start_time: '2030-06-02T09:00:00-07:00',
-        end_time: '2030-06-02T10:00:00-07:00',
-        appointment_type: 'telemedicine',
+        provider_id: 'provider-001-mock',
+        patient_id: 'patient-001-mock',
+        appointment_slot: '2030-06-02T16:00:00Z',
+        appointment_details: {
+          is_virtual: true,
+          appointment_type: 'Individual',
+          two_letter_state: 'CA',
+        },
       },
     })
     expect(res.statusCode).toBe(200)
-    const body = res.json<{ uuid: string; status: string }>()
-    expect(body).toHaveProperty('uuid')
+    const body = res.json<{ appointment_id: string; status: string }>()
+    expect(body).toHaveProperty('appointment_id')
     expect(body.status).toBe('confirmed')
     await app.close()
   })
