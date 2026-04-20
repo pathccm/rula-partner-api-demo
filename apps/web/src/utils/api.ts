@@ -14,6 +14,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(config.API_KEY ? { 'x-api-key': config.API_KEY } : {}),
       ...options?.headers,
     },
   })

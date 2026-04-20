@@ -5,6 +5,7 @@ import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import { config } from './config.js'
+import { verifyApiKey } from './plugins/apiKey.js'
 import { appointmentsRoutes } from './routes/appointments.js'
 import { insurancesRoutes } from './routes/insurances.js'
 import { patientsRoutes } from './routes/patients.js'
@@ -36,10 +37,14 @@ export async function buildApp(
 
   app.get('/health', async () => ({ status: 'ok', mockMode: config.USE_MOCK_API }))
 
-  await app.register(insurancesRoutes)
-  await app.register(providersRoutes)
-  await app.register(patientsRoutes)
-  await app.register(appointmentsRoutes)
+  // Encapsulated scope: API key check applies to all proxy routes
+  await app.register(async (sub) => {
+    sub.addHook('preHandler', verifyApiKey)
+    await sub.register(insurancesRoutes)
+    await sub.register(providersRoutes)
+    await sub.register(patientsRoutes)
+    await sub.register(appointmentsRoutes)
+  })
 
   // Serve the built React app when the dist folder exists
   if (existsSync(WEB_DIST)) {
