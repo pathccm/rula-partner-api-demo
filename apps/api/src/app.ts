@@ -5,6 +5,7 @@ import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import { config } from './config.js'
+import { verifyApiKey } from './plugins/apiKey.js'
 import { authPlugin, verifyJwt } from './plugins/auth.js'
 import { appointmentsRoutes } from './routes/appointments.js'
 import { insurancesRoutes } from './routes/insurances.js'
@@ -30,8 +31,9 @@ export async function buildApp(
 
   app.get('/health', async () => ({ status: 'ok', mockMode: config.USE_MOCK_API }))
 
-  // Encapsulated scope: verifyJwt hook applies to all proxy routes
+  // Encapsulated scope: API key + JWT hooks apply to all proxy routes
   await app.register(async (sub) => {
+    sub.addHook('preHandler', verifyApiKey)
     sub.addHook('preHandler', verifyJwt)
     await sub.register(insurancesRoutes)
     await sub.register(providersRoutes)
