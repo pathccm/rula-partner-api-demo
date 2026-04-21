@@ -19,6 +19,10 @@ const envSchema = z.object({
   AUTH0_ISSUER_DOMAIN: z.string().optional(),
   AUTH0_AUDIENCE_URL: z.url().optional(),
 
+  // Shared API key for protecting BFF routes. When set, all /v1/* requests must
+  // include a matching x-api-key header. When unset, enforcement is skipped (local dev).
+  API_KEY: z.string().optional(),
+
   // Timeout for outbound partner API requests (ms)
   PARTNER_API_TIMEOUT_MS: z.coerce.number().default(10_000),
 
