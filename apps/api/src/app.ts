@@ -6,7 +6,6 @@ import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import { config } from './config.js'
 import { verifyApiKey } from './plugins/apiKey.js'
-import { authPlugin, verifyJwt } from './plugins/auth.js'
 import { appointmentsRoutes } from './routes/appointments.js'
 import { insurancesRoutes } from './routes/insurances.js'
 import { patientsRoutes } from './routes/patients.js'
@@ -20,6 +19,15 @@ export async function buildApp(
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: opts.logger ?? false,
+    // Use x-request-id header if provided, otherwise generate a UUID.
+    // Fastify includes request.id in every log line automatically.
+    genReqId: (req) => (req.headers['x-request-id'] as string | undefined) ?? crypto.randomUUID(),
+  })
+
+  // Echo the correlation ID back on every response
+  app.addHook('onSend', (_request, reply, _payload, done) => {
+    reply.header('x-request-id', _request.id)
+    done()
   })
 
   await app.register(cors, {
@@ -27,14 +35,11 @@ export async function buildApp(
     credentials: true,
   })
 
-  await app.register(authPlugin)
-
   app.get('/health', async () => ({ status: 'ok', mockMode: config.USE_MOCK_API }))
 
-  // Encapsulated scope: API key + JWT hooks apply to all proxy routes
+  // Encapsulated scope: API key check applies to all proxy routes
   await app.register(async (sub) => {
     sub.addHook('preHandler', verifyApiKey)
-    sub.addHook('preHandler', verifyJwt)
     await sub.register(insurancesRoutes)
     await sub.register(providersRoutes)
     await sub.register(patientsRoutes)

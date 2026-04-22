@@ -14,7 +14,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.14.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zod": "^4.3.6"
@@ -26,6 +25,10 @@
     "@vitejs/plugin-react-swc": "^4.2.3",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "jsdom": "^26.1.0"
   }
 }

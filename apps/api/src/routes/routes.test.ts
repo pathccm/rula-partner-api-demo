@@ -4,35 +4,37 @@ import { buildApp } from '../app.js'
 const { mockConfig } = vi.hoisted(() => {
   const mockConfig = {
     USE_MOCK_API: true,
-    AUTH0_ISSUER_DOMAIN: undefined as string | undefined,
-    AUTH0_AUDIENCE_URL: undefined as string | undefined,
-    AUTH0_TOKEN_URL: undefined as string | undefined,
-    PARTNER_API_BASE_URL: undefined as string | undefined,
-    PARTNER_API_CLIENT_ID: undefined as string | undefined,
-    PARTNER_API_CLIENT_SECRET: undefined as string | undefined,
+    AUTH0_TOKEN_URL: 'https://test.auth0.com/oauth/token',
+    PARTNER_API_BASE_URL: 'https://api.test.rula.com',
+    PARTNER_API_CLIENT_ID: 'test-client-id',
+    PARTNER_API_CLIENT_SECRET: 'test-client-secret',
     PARTNER_API_TIMEOUT_MS: 10_000,
     APP_BASE_URL: 'http://localhost:3000',
     LOG_LEVEL: 'info' as const,
     NODE_ENV: 'test' as const,
-    PORT: 4000,
+    PORT: 4004,
   }
   return { mockConfig }
 })
 
 vi.mock('../config.js', () => ({ config: mockConfig }))
 
-// Auth plugin is a no-op in all route tests; verifyJwt is tested separately
-vi.mock('../plugins/auth.js', () => ({
-  authPlugin: vi.fn().mockResolvedValue(undefined),
-  verifyJwt: vi.fn().mockResolvedValue(undefined),
+vi.mock('../services/partnerApiClient.js', () => ({
+  partnerApiClient: {
+    request: vi.fn(),
+  },
 }))
+
+import { partnerApiClient } from '../services/partnerApiClient.js'
+
+const mockRequest = vi.mocked(partnerApiClient.request)
 
 beforeEach(() => {
   mockConfig.USE_MOCK_API = true
 })
 
 afterEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
 })
 
 describe('GET /health', () => {
@@ -45,45 +47,74 @@ describe('GET /health', () => {
   })
 })
 
-describe('proxy routes in mock mode', () => {
-  it('GET /v1/insurances returns mock insurances', async () => {
+describe('read routes (always hit partner API)', () => {
+  it('GET /v1/insurances proxies to partner API', async () => {
+    mockRequest.mockResolvedValueOnce({
+      insurances: [
+        { id: 'ins-1', carrier_display_name: 'Aetna', network_name: 'aetna', state: 'CA' },
+      ],
+    })
     const app = await buildApp()
     const res = await app.inject({ method: 'GET', url: '/v1/insurances' })
     expect(res.statusCode).toBe(200)
-    const body = res.json<Array<{ name: string }>>()
-    expect(Array.isArray(body)).toBe(true)
-    expect(body.length).toBeGreaterThan(0)
-    expect(body[0]).toHaveProperty('name')
+    const body = res.json<{ insurances: Array<{ carrier_display_name: string }> }>()
+    expect(body.insurances[0]).toHaveProperty('carrier_display_name', 'Aetna')
     await app.close()
   })
 
-  it('POST /v1/providers/search returns mock providers', async () => {
+  it('POST /v1/providers/search proxies to partner API', async () => {
+    mockRequest.mockResolvedValueOnce({
+      providers: [{ provider_id: 'p-1', first_name: 'Sarah', last_name: 'Chen' }],
+    })
     const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
       url: '/v1/providers/search',
-      payload: { state: 'CA' },
+      payload: { two_letter_state: 'CA' },
     })
     expect(res.statusCode).toBe(200)
-    const body = res.json<Array<{ uuid: string }>>()
-    expect(Array.isArray(body)).toBe(true)
-    expect(body[0]).toHaveProperty('uuid')
+    const body = res.json<{ providers: Array<{ provider_id: string }> }>()
+    expect(body.providers[0]).toHaveProperty('provider_id', 'p-1')
     await app.close()
   })
 
-  it('GET /v1/providers/slots returns slots for provider', async () => {
+  it('GET /v1/providers/slots proxies to partner API', async () => {
+    mockRequest.mockResolvedValueOnce({
+      slots: [
+        {
+          provider_id: 'p-1',
+          start_time_iso: '2030-06-02T16:00:00Z',
+          duration_mins: 50,
+          location: 'telemedicine',
+        },
+      ],
+    })
     const app = await buildApp()
     const res = await app.inject({
       method: 'GET',
-      url: '/v1/providers/slots?provider_uuid=provider-001-mock&two_letter_state=CA',
+      url: '/v1/providers/slots?provider_uuid=p-1&two_letter_state=CA',
     })
     expect(res.statusCode).toBe(200)
     const body = res.json<{ slots: Array<{ start_time_iso: string }> }>()
-    expect(Array.isArray(body.slots)).toBe(true)
     expect(body.slots[0]).toHaveProperty('start_time_iso')
     await app.close()
   })
 
+  it('GET /v1/providers/:uuid proxies to partner API', async () => {
+    mockRequest.mockResolvedValueOnce({
+      id: 'p-1',
+      first_name: 'Sarah',
+      last_name: 'Chen',
+    })
+    const app = await buildApp()
+    const res = await app.inject({ method: 'GET', url: '/v1/providers/p-1' })
+    expect(res.statusCode).toBe(200)
+    expect(res.json()).toHaveProperty('first_name', 'Sarah')
+    await app.close()
+  })
+})
+
+describe('write routes (mocked when USE_MOCK_API=true)', () => {
   it('POST /v1/patients returns created patient', async () => {
     const app = await buildApp()
     const res = await app.inject({
@@ -100,19 +131,19 @@ describe('proxy routes in mock mode', () => {
       },
     })
     expect(res.statusCode).toBe(200)
-    const body = res.json<{ patient_id: string }>()
-    expect(body).toHaveProperty('patient_id')
+    expect(res.json()).toHaveProperty('patient_id')
     await app.close()
   })
 
   it('POST /v1/appointments returns created appointment', async () => {
+    vi.useFakeTimers()
     const app = await buildApp()
-    const res = await app.inject({
+    const pendingRes = app.inject({
       method: 'POST',
       url: '/v1/appointments',
       payload: {
-        provider_id: 'provider-001-mock',
-        patient_id: 'patient-001-mock',
+        provider_id: 'p-1',
+        patient_id: 'patient-1',
         appointment_slot: '2030-06-02T16:00:00Z',
         appointment_details: {
           is_virtual: true,
@@ -121,10 +152,34 @@ describe('proxy routes in mock mode', () => {
         },
       },
     })
+    await vi.runAllTimersAsync()
+    const res = await pendingRes
+    vi.useRealTimers()
     expect(res.statusCode).toBe(200)
-    const body = res.json<{ appointment_id: string; status: string }>()
-    expect(body).toHaveProperty('appointment_id')
-    expect(body.status).toBe('confirmed')
+    expect(res.json()).toHaveProperty('appointment_id')
+    expect(res.json()).toMatchObject({ status: 'confirmed' })
+    await app.close()
+  })
+})
+
+describe('correlation ID', () => {
+  it('echoes x-request-id header back in the response', async () => {
+    const app = await buildApp()
+    const res = await app.inject({
+      method: 'GET',
+      url: '/health',
+      headers: { 'x-request-id': 'test-correlation-123' },
+    })
+    expect(res.headers['x-request-id']).toBe('test-correlation-123')
+    await app.close()
+  })
+
+  it('generates a UUID x-request-id when none is provided', async () => {
+    const app = await buildApp()
+    const res = await app.inject({ method: 'GET', url: '/health' })
+    expect(res.headers['x-request-id']).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    )
     await app.close()
   })
 })

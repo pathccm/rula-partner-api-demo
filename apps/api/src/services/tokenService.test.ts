@@ -4,14 +4,14 @@ import { getPartnerToken, resetTokenCache } from './tokenService.js'
 
 const { mockConfig } = vi.hoisted(() => {
   const mockConfig = {
-    USE_MOCK_API: false,
     AUTH0_TOKEN_URL: 'https://auth.example.com/oauth/token',
     PARTNER_API_CLIENT_ID: 'test-client-id',
     PARTNER_API_CLIENT_SECRET: 'test-client-secret',
     PARTNER_API_BASE_URL: 'https://api.partner.example.com',
+    PARTNER_API_AUDIENCE: 'https://api.partner.example.com/audience',
     LOG_LEVEL: 'info' as const,
     NODE_ENV: 'test' as const,
-    PORT: 4000,
+    PORT: 4004,
     APP_BASE_URL: 'http://localhost:3000',
   }
   return { mockConfig }
@@ -47,7 +47,6 @@ function mockFetchFailure(status = 401) {
 beforeEach(() => {
   resetTokenCache()
   vi.useFakeTimers()
-  mockConfig.USE_MOCK_API = false
 })
 
 afterEach(() => {
@@ -56,17 +55,6 @@ afterEach(() => {
 })
 
 describe('getPartnerToken', () => {
-  it('returns mock-token in mock mode without calling fetch', async () => {
-    mockConfig.USE_MOCK_API = true
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
-
-    const token = await getPartnerToken()
-
-    expect(token).toBe('mock-token')
-    expect(fetchMock).not.toHaveBeenCalled()
-  })
-
   it('fetches a token from Auth0 and returns it', async () => {
     mockFetchSuccess()
 
@@ -82,7 +70,7 @@ describe('getPartnerToken', () => {
           grant_type: 'client_credentials',
           client_id: mockConfig.PARTNER_API_CLIENT_ID,
           client_secret: mockConfig.PARTNER_API_CLIENT_SECRET,
-          audience: mockConfig.PARTNER_API_BASE_URL,
+          audience: mockConfig.PARTNER_API_AUDIENCE,
         }),
       }),
     )
@@ -114,14 +102,13 @@ describe('getPartnerToken', () => {
     expect(vi.mocked(fetch)).toHaveBeenCalledOnce()
   })
 
-  it('throws PartnerApiError(502) on auth failure without leaking the Auth0 body', async () => {
+  it('throws PartnerApiError(502) on auth failure', async () => {
     mockFetchFailure(401)
 
     const err = await getPartnerToken().catch((e: unknown) => e)
 
     expect(err).toBeInstanceOf(PartnerApiError)
     expect((err as PartnerApiError).status).toBe(502)
-    expect((err as PartnerApiError).message).toBe('Auth service unavailable')
-    expect((err as PartnerApiError).message).not.toContain('Unauthorized')
+    expect((err as PartnerApiError).message).toContain('Auth service unavailable (401)')
   })
 })

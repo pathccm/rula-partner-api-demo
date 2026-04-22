@@ -10,15 +10,16 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       proxy: {
-        '/api': {
-          target: env.VITE_API_BASE_URL ?? 'http://localhost:4000',
+        '/v1': {
+          target: env.VITE_API_BASE_URL ?? 'http://localhost:4004',
           changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/api/, ''),
         },
       },
     },
     test: {
-      environment: 'node',
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: ['./src/test-setup.ts'],
       coverage: {
         provider: 'v8',
         include: ['src/**'],
