@@ -51,8 +51,15 @@ export function ProviderModal({
 
         <div className="modal-header">
           <div className="modal-avatar">
-            {provider.first_name[0]}
-            {provider.last_name[0]}
+            {(detail?.profile_image_url ?? provider.profile_image_url) ? (
+              <img
+                src={detail?.profile_image_url ?? provider.profile_image_url}
+                alt={`${provider.first_name} ${provider.last_name}`}
+                className="modal-avatar-img"
+              />
+            ) : (
+              <>{provider.first_name[0]}{provider.last_name[0]}</>
+            )}
           </div>
           <div>
             <h2 style={{ margin: '0 0 0.35rem' }}>

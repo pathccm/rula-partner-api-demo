@@ -3,15 +3,16 @@ import { SchedulingPage } from './pages/SchedulingPage'
 
 function App() {
   return (
-    <div className="app-container">
+    <>
       <header className="app-header">
-        <h1>Partner Scheduling API Demo</h1>
-        <p className="disclaimer">
-          Demo/integration sample code only, not production reference. Do not use real patient data.
-        </p>
+        <div className="app-header-inner">
+          <img src="/rula-logo.svg" alt="Rula" className="app-header-logo" />
+        </div>
       </header>
-      <SchedulingPage />
-    </div>
+      <main className="app-container">
+        <SchedulingPage />
+      </main>
+    </>
   )
 }
 

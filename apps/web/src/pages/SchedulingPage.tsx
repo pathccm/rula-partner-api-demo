@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BookingModal } from '../components/BookingModal'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { ProviderModal } from '../components/ProviderModal'
@@ -13,31 +13,42 @@ import type {
 import { api } from '../utils/api'
 import { type ErrorInfo, getErrorInfo } from '../utils/errorMessage'
 
-type Step = 'careType' | 'insurance' | 'providers' | 'slots' | 'patient' | 'confirmed' | 'status'
+type Step = 'careType' | 'insurance' | 'filters' | 'providers' | 'slots' | 'patient' | 'confirmed' | 'status'
 
-const STEP_LABELS: Record<Step, string> = {
-  careType: '1. Care type',
-  insurance: '2. Insurance',
-  providers: '3. Providers',
-  slots: '4. Slots',
-  patient: '5. Patient',
-  confirmed: '6. Confirmed',
-  status: '7. Status',
-}
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const CARE_TYPES = [
-  { value: 'Individual', icon: '🧠', label: 'Individual therapy' },
-  { value: 'Couples', icon: '💑', label: 'Couples therapy' },
-  { value: 'Family', icon: '👨‍👩‍👧', label: 'Family therapy' },
-  { value: 'Psychiatry', icon: '💊', label: 'Psychiatry' },
+  { value: 'Individual', label: 'Therapy' },
+  { value: 'Psychiatry', label: 'Medication management' },
 ]
 
 const LOCATION_TYPES = [
-  { value: 'telemedicine', icon: '💻', label: 'Video' },
-  { value: 'in_person', icon: '🏢', label: 'In person' },
+  { value: 'telemedicine', label: 'Virtual' },
+  { value: 'in_person', label: 'In-person' },
 ]
 
 const US_STATES = ['CA', 'CO', 'FL', 'IL', 'MA', 'NY', 'OR', 'PA', 'TX', 'WA']
+
+const GENDER_OPTIONS = [
+  'Female', 'Male', 'Non-binary', 'Trans', 'Gender fluid',
+  'Agender', 'Bigender', 'Cis', "My gender isn't listed", 'Prefer not to respond',
+] as const
+
+const RACE_OPTIONS = [
+  'American Indian or Alaska Native', 'Asian', 'Biracial or Multiracial',
+  'Black or African American', 'Caucasian or White', 'Hispanic or Latinx',
+  'Middle Eastern', 'Native Hawaiian or Other Pacific Islander', 'South East Asian',
+  'Other', 'Prefer Not to Respond',
+] as const
+
+const SPECIALIZATION_OPTIONS = [
+  'Anxiety', 'Depression', 'Trauma and PTSD', 'Relationship Issues', 'Grief',
+  'ADHD', 'Bipolar Disorder', 'Eating Disorders', 'LGBTQIA+', 'Life Transitions',
+  'Addiction', 'Anger Management', 'Coping Skills', 'Family Conflict', 'Self Esteem',
+  'Stress', 'Sleep or Insomnia', 'Chronic Illness', 'Chronic Pain', 'Pregnancy/Prenatal/Postpartum',
+] as const
+
+const PROVIDERS_PER_PAGE = 10
 
 const EMPTY_PATIENT = {
   partner_patient_id: 'demo-patient-001',
@@ -49,15 +60,99 @@ const EMPTY_PATIENT = {
   location: 'CA',
 }
 
-const STEP_ORDER: Step[] = [
-  'careType',
-  'insurance',
-  'providers',
-  'slots',
-  'patient',
-  'confirmed',
-  'status',
-]
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function groupSlotsByDate(slots: Slot[]): Record<string, Slot[]> {
+  return slots.reduce<Record<string, Slot[]>>((acc, slot) => {
+    const key = new Date(slot.start_time_iso).toLocaleDateString(undefined, {
+      weekday: 'long', month: 'long', day: 'numeric',
+    })
+    ;(acc[key] ??= []).push(slot)
+    return acc
+  }, {})
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function ProviderAvatar({
+  provider,
+  size = 'sm',
+}: {
+  provider: Pick<Provider, 'first_name' | 'last_name' | 'profile_image_url'>
+  size?: 'sm' | 'lg'
+}) {
+  return (
+    <div className={`provider-card-avatar ${size === 'lg' ? 'provider-card-avatar--lg' : ''}`}>
+      {provider.profile_image_url ? (
+        <img
+          src={provider.profile_image_url}
+          alt={`${provider.first_name} ${provider.last_name}`}
+          className="provider-card-img"
+        />
+      ) : (
+        <span>{provider.first_name[0]}{provider.last_name[0]}</span>
+      )}
+    </div>
+  )
+}
+
+function FilterChipGroup<T extends string>({
+  id,
+  options,
+  selected,
+  initialCount = 4,
+  expandedId,
+  onExpand,
+  onToggle,
+}: {
+  id: string
+  options: readonly T[]
+  selected: string[]
+  initialCount?: number
+  expandedId: string | null
+  onExpand: (id: string | null) => void
+  onToggle: (v: T) => void
+}) {
+  const isExpanded = expandedId === id
+  const visible = isExpanded ? options : options.slice(0, initialCount)
+  const hiddenCount = options.length - initialCount
+  const hiddenSelected = options.slice(initialCount).filter((o) => selected.includes(o)).length
+
+  return (
+    <div className="filter-chip-grid">
+      {visible.map((o) => (
+        <button
+          key={o}
+          type="button"
+          className={`filter-chip ${selected.includes(o) ? 'selected' : ''}`}
+          onClick={() => onToggle(o)}
+        >
+          {o}
+        </button>
+      ))}
+      {!isExpanded && hiddenCount > 0 && (
+        <button
+          type="button"
+          className="filter-chip filter-chip--more"
+          onClick={() => onExpand(id)}
+        >
+          +{hiddenCount} more{hiddenSelected > 0 ? ` (${hiddenSelected} selected)` : ''}
+        </button>
+      )}
+      {isExpanded && (
+        <button
+          type="button"
+          className="filter-chip filter-chip--more"
+          onClick={() => onExpand(null)}
+        >
+          Show less
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function SchedulingPage() {
   const [step, setStep] = useState<Step>('careType')
@@ -66,35 +161,48 @@ export function SchedulingPage() {
 
   // Step 1
   const [careType, setCareType] = useState<string | null>(null)
-  const [locationType, setLocationType] = useState<'telemedicine' | 'in_person' | null>(null)
+  const [locationTypes, setLocationTypes] = useState<Array<'telemedicine' | 'in_person'>>([])
   const [state, setState] = useState('CA')
+
+  // Step 1 — state dropdown
+  const [stateOpen, setStateOpen] = useState(false)
+  const stateRef = useRef<HTMLDivElement>(null)
 
   // Step 2
   const [insurances, setInsurances] = useState<Insurance[]>([])
   const [selectedInsurance, setSelectedInsurance] = useState<Insurance | null>(null)
+  const [insuranceQuery, setInsuranceQuery] = useState('')
+  const [insuranceOpen, setInsuranceOpen] = useState(false)
+  const insuranceRef = useRef<HTMLDivElement>(null)
 
-  // Step 3
+  // Step 3 — provider filters
+  const [filterGenders, setFilterGenders] = useState<string[]>([])
+  const [filterRaces, setFilterRaces] = useState<string[]>([])
+  const [filterSpecializations, setFilterSpecializations] = useState<string[]>([])
+  const [expandedFilter, setExpandedFilter] = useState<string | null>(null)
+
+  // Step 4 — Provider results
   const [providers, setProviders] = useState<Provider[]>([])
   const [providerPage, setProviderPage] = useState(0)
-  const PROVIDERS_PER_PAGE = 10
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
   const [booking, setBooking] = useState(false)
   const [modalProvider, setModalProvider] = useState<Provider | null>(null)
   const [modalDetail, setModalDetail] = useState<ProviderDetail | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
 
-  // Step 4
+  // Step 5 — Slot selection
   const [slots, setSlots] = useState<Slot[]>([])
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
+  const [expandedDate, setExpandedDate] = useState<string | null>(null)
 
-  // Step 5
+  // Step 6 — Patient info
   const [patientData, setPatientData] = useState(EMPTY_PATIENT)
 
-  // Step 6
+  // Step 7 — Confirmation
   const [appointment, setAppointment] = useState<Appointment | null>(null)
   const [patientId, setPatientId] = useState<string | null>(null)
 
-  // Step 7
+  // Step 8 — Appointment status
   const [appointmentStatuses, setAppointmentStatuses] = useState<AppointmentStatus[]>([])
 
   function handleError(err: unknown) {
@@ -119,17 +227,43 @@ export function SchedulingPage() {
     void load()
   }, [step, state])
 
-  async function handleSelectInsurance(ins: Insurance | null) {
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (insuranceRef.current && !insuranceRef.current.contains(e.target as Node)) {
+        setInsuranceOpen(false)
+      }
+      if (stateRef.current && !stateRef.current.contains(e.target as Node)) {
+        setStateOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function handleSelectInsurance(ins: Insurance | null) {
     setSelectedInsurance(ins)
+    setError(null)
+    setStep('filters')
+  }
+
+  type SearchProviderParams = Parameters<typeof api.searchProviders>[0]
+
+  async function handleApplyFilters(filters?: {
+    gender?: SearchProviderParams['gender']
+    race?: SearchProviderParams['race']
+    specialization?: SearchProviderParams['specialization']
+  }) {
     setError(null)
     setLoading(true)
     setProviderPage(0)
     try {
       const res = await api.searchProviders({
         two_letter_state: state,
-        insurance: ins?.network_name,
+        insurance: selectedInsurance?.network_name,
         care_category: careType === 'Psychiatry' ? 'psychiatry' : 'therapy',
         limit: 50,
+        ...filters,
       })
       setProviders(res.providers)
       setStep('providers')
@@ -164,8 +298,10 @@ export function SchedulingPage() {
     setError(null)
     setLoading(true)
     try {
-      const res = await api.getSlots(provider.id, state, locationType)
+      const locationFilter = locationTypes.length === 1 ? locationTypes[0] : null
+      const res = await api.getSlots(provider.id, state, locationFilter)
       setSlots(res.slots)
+      setExpandedDate(null)
       setStep('slots')
     } catch (err) {
       handleError(err)
@@ -230,14 +366,22 @@ export function SchedulingPage() {
   function reset() {
     setStep('careType')
     setCareType(null)
-    setLocationType(null)
+    setLocationTypes([])
     setState('CA')
+    setStateOpen(false)
     setInsurances([])
     setSelectedInsurance(null)
+    setInsuranceQuery('')
+    setInsuranceOpen(false)
+    setFilterGenders([])
+    setFilterRaces([])
+    setFilterSpecializations([])
+    setExpandedFilter(null)
     setProviders([])
     setSelectedProvider(null)
     setSlots([])
     setSelectedSlot(null)
+    setExpandedDate(null)
     setPatientData(EMPTY_PATIENT)
     setAppointment(null)
     setPatientId(null)
@@ -245,20 +389,9 @@ export function SchedulingPage() {
     setError(null)
   }
 
-  const currentIdx = STEP_ORDER.indexOf(step)
-
   return (
     <div className="scheduling-page">
-      <div className="step-indicator">
-        {STEP_ORDER.map((s, i) => (
-          <span
-            key={s}
-            className={`step ${step === s ? 'active' : ''} ${i < currentIdx ? 'done' : ''}`}
-          >
-            {i < currentIdx ? '✓' : STEP_LABELS[s]}
-          </span>
-        ))}
-      </div>
+
 
       {error && (
         <ErrorBanner
@@ -276,7 +409,7 @@ export function SchedulingPage() {
       {/* Step 1 — Care type + state */}
       {step === 'careType' && (
         <div className="card">
-          <h2>What kind of care are you looking for?</h2>
+          <h2 style={{ whiteSpace: 'nowrap' }}>What type of care are you looking for?</h2>
           <div className="option-grid">
             {CARE_TYPES.map((ct) => (
               <button
@@ -285,7 +418,6 @@ export function SchedulingPage() {
                 className={`option-card ${careType === ct.value ? 'selected' : ''}`}
                 onClick={() => setCareType(ct.value)}
               >
-                <span className="option-icon">{ct.icon}</span>
                 {ct.label}
               </button>
             ))}
@@ -297,26 +429,52 @@ export function SchedulingPage() {
               <button
                 key={lt.value}
                 type="button"
-                className={`option-card ${locationType === lt.value ? 'selected' : ''}`}
-                onClick={() => setLocationType(lt.value as 'telemedicine' | 'in_person')}
+                className={`option-card ${locationTypes.includes(lt.value as 'telemedicine' | 'in_person') ? 'selected' : ''}`}
+                onClick={() => {
+                  const v = lt.value as 'telemedicine' | 'in_person'
+                  setLocationTypes((prev) =>
+                    prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                  )
+                }}
               >
-                <span className="option-icon">{lt.icon}</span>
                 {lt.label}
               </button>
             ))}
           </div>
 
           <div style={{ marginTop: '1.5rem', maxWidth: 260 }}>
-            <label className="search-form" style={{ gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Your state</span>
-              <select value={state} onChange={(e) => setState(e.target.value)}>
-                {US_STATES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="ins-dropdown" ref={stateRef}>
+              <h2 style={{ margin: '0 0 0.4rem' }}>Your state</h2>
+              <button
+                type="button"
+                className={`ins-dropdown-trigger ${stateOpen ? 'open' : ''}`}
+                onClick={() => setStateOpen((o) => !o)}
+              >
+                <span>{state}</span>
+                <span className={`ins-chevron ${stateOpen ? 'open' : ''}`} />
+              </button>
+              {stateOpen && (
+                <div className="ins-dropdown-panel">
+                  <ul className="ins-option-list">
+                    {US_STATES.map((s) => (
+                      <li key={s}>
+                        <button
+                          type="button"
+                          className={`ins-option ${state === s ? 'selected' : ''}`}
+                          onClick={() => {
+                            setState(s)
+                            setStateOpen(false)
+                          }}
+                        >
+                          {s}
+                          {state === s && <span className="ins-check" />}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ marginTop: '1.5rem' }}>
@@ -355,23 +513,69 @@ export function SchedulingPage() {
           {loading && <p style={{ color: 'var(--text-secondary)' }}>Loading plans…</p>}
           {!loading && insurances.length > 0 && (
             <div className="search-form">
-              <label>
-                Insurance plan
-                <select
-                  value={selectedInsurance?.id ?? ''}
-                  onChange={(e) => {
-                    const ins = insurances.find((i) => i.id === e.target.value) ?? null
-                    setSelectedInsurance(ins)
+              <div className="ins-dropdown" ref={insuranceRef}>
+                <label className="ins-dropdown-label">Insurance plan</label>
+                <button
+                  type="button"
+                  className={`ins-dropdown-trigger ${insuranceOpen ? 'open' : ''}`}
+                  onClick={() => {
+                    setInsuranceOpen((o) => !o)
+                    setInsuranceQuery('')
                   }}
                 >
-                  <option value="">Select a plan…</option>
-                  {insurances.map((ins) => (
-                    <option key={ins.id} value={ins.id}>
-                      {ins.carrier_display_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <span className={selectedInsurance ? '' : 'ins-placeholder'}>
+                    {selectedInsurance?.carrier_display_name ?? 'Select a plan…'}
+                  </span>
+                  <span className={`ins-chevron ${insuranceOpen ? 'open' : ''}`} />
+                </button>
+                {insuranceOpen && (
+                  <div className="ins-dropdown-panel">
+                    <div className="ins-search-wrap">
+                      <input
+                        autoFocus
+                        type="text"
+                        className="ins-search-input"
+                        placeholder="Search plans…"
+                        value={insuranceQuery}
+                        onChange={(e) => setInsuranceQuery(e.target.value)}
+                      />
+                    </div>
+                    <ul className="ins-option-list">
+                      {insurances
+                        .filter((ins) =>
+                          ins.carrier_display_name
+                            .toLowerCase()
+                            .includes(insuranceQuery.toLowerCase()),
+                        )
+                        .map((ins) => (
+                          <li key={ins.id}>
+                            <button
+                              type="button"
+                              className={`ins-option ${selectedInsurance?.id === ins.id ? 'selected' : ''}`}
+                              onClick={() => {
+                                setSelectedInsurance(ins)
+                                setInsuranceOpen(false)
+                                setInsuranceQuery('')
+                              }}
+                            >
+                              {ins.carrier_display_name}
+                              {selectedInsurance?.id === ins.id && (
+                                <span className="ins-check" />
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      {insurances.filter((ins) =>
+                        ins.carrier_display_name
+                          .toLowerCase()
+                          .includes(insuranceQuery.toLowerCase()),
+                      ).length === 0 && (
+                        <li className="ins-no-results">No plans match "{insuranceQuery}"</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
@@ -394,10 +598,86 @@ export function SchedulingPage() {
         </div>
       )}
 
-      {/* Step 3 — Provider results */}
-      {step === 'providers' && (
+      {/* Step 3 — Provider preferences */}
+      {step === 'filters' && (
         <div className="card">
           <button type="button" className="back-link" onClick={() => setStep('insurance')}>
+            ← Back
+          </button>
+          <h2>Any preferences for your provider?</h2>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: 0, marginBottom: '1.5rem' }}>
+            All fields are optional — we'll find the best matches.
+          </p>
+
+          <div className="filter-section">
+            <h3 className="filter-section-label">Gender</h3>
+            <FilterChipGroup
+              id="gender"
+              options={GENDER_OPTIONS}
+              selected={filterGenders}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) => setFilterGenders((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+            />
+          </div>
+
+          <div className="filter-section">
+            <h3 className="filter-section-label">Race / ethnicity</h3>
+            <FilterChipGroup
+              id="race"
+              options={RACE_OPTIONS}
+              selected={filterRaces}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) => setFilterRaces((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+            />
+          </div>
+
+          <div className="filter-section">
+            <h3 className="filter-section-label">Specialization</h3>
+            <FilterChipGroup
+              id="specialization"
+              options={SPECIALIZATION_OPTIONS}
+              selected={filterSpecializations}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) => setFilterSpecializations((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={loading}
+              onClick={() => void handleApplyFilters({
+                gender: filterGenders[0] as SearchProviderParams['gender'],
+                race: filterRaces[0] as SearchProviderParams['race'],
+                specialization: filterSpecializations[0] as SearchProviderParams['specialization'],
+              })}
+            >
+              {loading ? 'Searching…' : 'Find providers'}
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => {
+                setFilterGenders([])
+                setFilterRaces([])
+                setFilterSpecializations([])
+                void handleApplyFilters()
+              }}
+            >
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4 — Provider results */}
+      {step === 'providers' && (
+        <div className="card">
+          <button type="button" className="back-link" onClick={() => setStep('filters')}>
             ← Back
           </button>
           <h2>Available providers</h2>
@@ -416,7 +696,6 @@ export function SchedulingPage() {
           )}
           {providers.length === 0 && !loading && (
             <div className="empty-state">
-              <div className="empty-state-icon">🔍</div>
               <h3>No providers found</h3>
               <p>
                 We couldn't find any in-network providers for{' '}
@@ -443,24 +722,18 @@ export function SchedulingPage() {
               .map((p) => (
                 <li key={p.id}>
                   <div className="provider-card">
+                    <ProviderAvatar provider={p} />
                     <div className="provider-card-info">
                       <p className="provider-card-name">
-                        {p.first_name} {p.last_name}
+                        {p.first_name} {p.last_name[0]}.
                       </p>
-                      <div className="provider-card-meta">
-                        {p.slot_start_time && (
-                          <span className="info-pill">
-                            <span className="info-pill-label">Next availability</span>
-                            {new Date(p.slot_start_time).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                        )}
-                      </div>
-                      {p.profile_bio && <p className="provider-card-bio">{p.profile_bio}</p>}
+                      {p.slot_start_time && (
+                        <span className="provider-card-avail">
+                          Available {new Date(p.slot_start_time).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}
+                        </span>
+                      )}
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                    <div className="provider-card-actions">
                       <button
                         type="button"
                         className="btn-ghost small"
@@ -474,7 +747,7 @@ export function SchedulingPage() {
                         onClick={() => handleSelectProvider(p)}
                         disabled={loading}
                       >
-                        {loading && selectedProvider?.id === p.id ? 'Loading…' : 'View slots'}
+                        {loading && selectedProvider?.id === p.id ? 'Loading…' : 'Book'}
                       </button>
                     </div>
                   </div>
@@ -528,59 +801,70 @@ export function SchedulingPage() {
           <button type="button" className="back-link" onClick={() => setStep('providers')}>
             ← Back
           </button>
-          <h2>
-            {selectedProvider.first_name} {selectedProvider.last_name}
-          </h2>
-          {selectedProvider.genders && selectedProvider.genders.length > 0 && (
-            <div style={{ marginBottom: '1rem' }}>
-              <span className="tag">{selectedProvider.genders.join(', ')}</span>
+          <div className="slots-provider-header">
+            <ProviderAvatar provider={selectedProvider} size="lg" />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.35rem' }}>
+              <h2 style={{ margin: 0 }}>
+                {selectedProvider.first_name} {selectedProvider.last_name}
+              </h2>
+              {selectedInsurance && (
+                <span className="tag tag--insurance" style={{ alignSelf: 'flex-start' }}>Accepts {selectedInsurance.carrier_display_name}</span>
+              )}
             </div>
-          )}
+          </div>
           {loading && <p style={{ color: 'var(--text-secondary)' }}>Loading slots…</p>}
           {slots.length === 0 && !loading && (
             <p style={{ color: 'var(--text-secondary)' }}>No upcoming slots available.</p>
           )}
-          {slots.length > 0 && (
-            <>
-              <p
-                style={{
-                  fontSize: '0.88rem',
-                  color: 'var(--text-secondary)',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                Select a time that works for you
-              </p>
-              <ul className="slot-list">
-                {slots.map((slot) => (
-                  <li key={`${slot.start_time_iso}-${slot.location}`} className="slot-item">
-                    <div className="slot-item-info">
-                      <strong className="slot-item-time">
-                        {new Date(slot.start_time_iso).toLocaleString(undefined, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </strong>
-                      <span className="tag slot-item-location">
-                        {slot.location === 'telemedicine' ? 'Video' : 'In person'}
-                      </span>
-                      <span className="tag slot-item-duration">{slot.duration_mins} min</span>
+          {slots.length > 0 && (() => {
+            const slotsByDate = groupSlotsByDate(slots)
+            const dates = Object.keys(slotsByDate)
+            const firstDate = expandedDate ?? dates[0]
+            return (
+              <div className="slot-date-list">
+                {dates.map((date) => {
+                  const isOpen = firstDate === date
+                  return (
+                    <div key={date} className={`slot-date-group ${isOpen ? 'open' : ''}`}>
+                      <button
+                        type="button"
+                        className="slot-date-header"
+                        onClick={() => setExpandedDate(isOpen ? null : date)}
+                      >
+                        <span className="slot-date-label">{date}</span>
+                        <span className="slot-date-count">
+                          {slotsByDate[date].length} slot{slotsByDate[date].length !== 1 ? 's' : ''}
+                        </span>
+                        <span className={`slot-date-chevron ${isOpen ? 'open' : ''}`} />
+                      </button>
+                      {isOpen && (
+                        <div className="slot-time-grid">
+                          {slotsByDate[date].map((slot) => (
+                            <button
+                              key={`${slot.start_time_iso}-${slot.location}`}
+                              type="button"
+                              className="slot-time-chip"
+                              onClick={() => handleSelectSlot(slot)}
+                            >
+                              <span className="slot-time-chip-time">
+                                {new Date(slot.start_time_iso).toLocaleTimeString(undefined, {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                              <span className="slot-time-chip-meta">
+                                {slot.location === 'telemedicine' ? 'Virtual' : 'In-person'} · {slot.duration_mins} min
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <button
-                      type="button"
-                      className="btn-primary small"
-                      onClick={() => handleSelectSlot(slot)}
-                    >
-                      Select
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+                  )
+                })}
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -604,7 +888,7 @@ export function SchedulingPage() {
               minute: '2-digit',
             })}
             {' · '}
-            {selectedSlot.location === 'telemedicine' ? 'Video' : 'In person'}
+            {selectedSlot.location === 'telemedicine' ? 'Virtual' : 'In-person'}
           </div>
           <form onSubmit={handleBook} className="search-form">
             <label>
@@ -667,7 +951,7 @@ export function SchedulingPage() {
       {step === 'confirmed' && appointment && (
         <div className="card">
           <div className="confirmation">
-            <div className="checkmark">✓</div>
+            <div className="checkmark" />
             <h2 style={{ margin: 0 }}>You're booked!</h2>
             <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.92rem' }}>
               Your appointment has been confirmed.
@@ -691,7 +975,7 @@ export function SchedulingPage() {
               </p>
               <p>
                 <strong>Format:</strong>{' '}
-                {appointment.appointment_details.is_virtual ? 'Video' : 'In person'}
+                {appointment.appointment_details.is_virtual ? 'Virtual' : 'In-person'}
               </p>
               <p>
                 <strong>Status:</strong> {appointment.status}
@@ -728,7 +1012,7 @@ export function SchedulingPage() {
           {appointmentStatuses.length === 0 && !loading && (
             <p style={{ color: 'var(--text-secondary)' }}>No appointments found.</p>
           )}
-          <ul className="slot-list">
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {appointmentStatuses.map((appt) => (
               <li key={appt.appointment_id} className="slot-item">
                 <div
@@ -745,7 +1029,7 @@ export function SchedulingPage() {
                   </strong>
                   <span className={`tag tag--${appt.status}`}>{appt.status}</span>
                   <span className="tag">
-                    {appt.appointment_type === 'telemedicine' ? 'Video' : 'In person'}
+                    {appt.appointment_type === 'telemedicine' ? 'Virtual' : 'In-person'}
                   </span>
                 </div>
               </li>
