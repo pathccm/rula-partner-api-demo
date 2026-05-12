@@ -1,5 +1,5 @@
 .app-container {
-  max-width: 780px;
+  max-width: 480px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem 3rem;
   display: flex;
@@ -19,7 +19,7 @@
 
 .app-header-inner {
   width: 100%;
-  max-width: 780px;
+  max-width: 480px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,6 +30,7 @@
   width: auto;
   display: block;
 }
+
 
 /* Cards */
 .card {

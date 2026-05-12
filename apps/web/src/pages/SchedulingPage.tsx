@@ -221,9 +221,11 @@ export function SchedulingPage() {
   const insuranceRef = useRef<HTMLDivElement>(null)
 
   // Step 3 — provider filters
-  const [filterGenders, setFilterGenders] = useState<string[]>([])
-  const [filterRaces, setFilterRaces] = useState<string[]>([])
-  const [filterSpecializations, setFilterSpecializations] = useState<string[]>([])
+  const [filterGenders, setFilterGenders] = useState<Array<(typeof GENDER_OPTIONS)[number]>>([])
+  const [filterRaces, setFilterRaces] = useState<Array<(typeof RACE_OPTIONS)[number]>>([])
+  const [filterSpecializations, setFilterSpecializations] = useState<
+    Array<(typeof SPECIALIZATION_OPTIONS)[number]>
+  >([])
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null)
 
   // Step 4 — Provider results
@@ -346,7 +348,8 @@ export function SchedulingPage() {
       const locationFilter = locationTypes.length === 1 ? locationTypes[0] : null
       const res = await api.getSlots(provider.id, state, locationFilter)
       setSlots(res.slots)
-      setExpandedDate(null)
+      const firstDate = Object.keys(groupSlotsByDate(res.slots))[0] ?? null
+      setExpandedDate(firstDate)
       setStep('slots')
     } catch (err) {
       handleError(err)
@@ -505,6 +508,11 @@ export function SchedulingPage() {
                           type="button"
                           className={`ins-option ${state === s ? 'selected' : ''}`}
                           onClick={() => {
+                            if (s !== state) {
+                              setSelectedInsurance(null)
+                              setProviders([])
+                              setSelectedProvider(null)
+                            }
                             setState(s)
                             setStateOpen(false)
                           }}
@@ -583,35 +591,33 @@ export function SchedulingPage() {
                       />
                     </div>
                     <ul className="ins-option-list">
-                      {insurances
-                        .filter((ins) =>
+                      {(() => {
+                        const filtered = insurances.filter((ins) =>
                           ins.carrier_display_name
                             .toLowerCase()
                             .includes(insuranceQuery.toLowerCase()),
                         )
-                        .map((ins) => (
-                          <li key={ins.id}>
-                            <button
-                              type="button"
-                              className={`ins-option ${selectedInsurance?.id === ins.id ? 'selected' : ''}`}
-                              onClick={() => {
-                                setSelectedInsurance(ins)
-                                setInsuranceOpen(false)
-                                setInsuranceQuery('')
-                              }}
-                            >
-                              {ins.carrier_display_name}
-                              {selectedInsurance?.id === ins.id && <span className="ins-check" />}
-                            </button>
-                          </li>
-                        ))}
-                      {insurances.filter((ins) =>
-                        ins.carrier_display_name
-                          .toLowerCase()
-                          .includes(insuranceQuery.toLowerCase()),
-                      ).length === 0 && (
-                        <li className="ins-no-results">No plans match "{insuranceQuery}"</li>
-                      )}
+                        return filtered.length === 0 ? (
+                          <li className="ins-no-results">No plans match "{insuranceQuery}"</li>
+                        ) : (
+                          filtered.map((ins) => (
+                            <li key={ins.id}>
+                              <button
+                                type="button"
+                                className={`ins-option ${selectedInsurance?.id === ins.id ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setSelectedInsurance(ins)
+                                  setInsuranceOpen(false)
+                                  setInsuranceQuery('')
+                                }}
+                              >
+                                {ins.carrier_display_name}
+                                {selectedInsurance?.id === ins.id && <span className="ins-check" />}
+                              </button>
+                            </li>
+                          ))
+                        )
+                      })()}
                     </ul>
                   </div>
                 )}
@@ -891,11 +897,10 @@ export function SchedulingPage() {
             (() => {
               const slotsByDate = groupSlotsByDate(slots)
               const dates = Object.keys(slotsByDate)
-              const firstDate = expandedDate ?? dates[0]
               return (
                 <div className="slot-date-list">
                   {dates.map((date) => {
-                    const isOpen = firstDate === date
+                    const isOpen = expandedDate === date
                     return (
                       <div key={date} className={`slot-date-group ${isOpen ? 'open' : ''}`}>
                         <button
