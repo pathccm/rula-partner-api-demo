@@ -13,7 +13,15 @@ import type {
 import { api } from '../utils/api'
 import { type ErrorInfo, getErrorInfo } from '../utils/errorMessage'
 
-type Step = 'careType' | 'insurance' | 'filters' | 'providers' | 'slots' | 'patient' | 'confirmed' | 'status'
+type Step =
+  | 'careType'
+  | 'insurance'
+  | 'filters'
+  | 'providers'
+  | 'slots'
+  | 'patient'
+  | 'confirmed'
+  | 'status'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -30,22 +38,53 @@ const LOCATION_TYPES = [
 const US_STATES = ['CA', 'CO', 'FL', 'IL', 'MA', 'NY', 'OR', 'PA', 'TX', 'WA']
 
 const GENDER_OPTIONS = [
-  'Female', 'Male', 'Non-binary', 'Trans', 'Gender fluid',
-  'Agender', 'Bigender', 'Cis', "My gender isn't listed", 'Prefer not to respond',
+  'Female',
+  'Male',
+  'Non-binary',
+  'Trans',
+  'Gender fluid',
+  'Agender',
+  'Bigender',
+  'Cis',
+  "My gender isn't listed",
+  'Prefer not to respond',
 ] as const
 
 const RACE_OPTIONS = [
-  'American Indian or Alaska Native', 'Asian', 'Biracial or Multiracial',
-  'Black or African American', 'Caucasian or White', 'Hispanic or Latinx',
-  'Middle Eastern', 'Native Hawaiian or Other Pacific Islander', 'South East Asian',
-  'Other', 'Prefer Not to Respond',
+  'American Indian or Alaska Native',
+  'Asian',
+  'Biracial or Multiracial',
+  'Black or African American',
+  'Caucasian or White',
+  'Hispanic or Latinx',
+  'Middle Eastern',
+  'Native Hawaiian or Other Pacific Islander',
+  'South East Asian',
+  'Other',
+  'Prefer Not to Respond',
 ] as const
 
 const SPECIALIZATION_OPTIONS = [
-  'Anxiety', 'Depression', 'Trauma and PTSD', 'Relationship Issues', 'Grief',
-  'ADHD', 'Bipolar Disorder', 'Eating Disorders', 'LGBTQIA+', 'Life Transitions',
-  'Addiction', 'Anger Management', 'Coping Skills', 'Family Conflict', 'Self Esteem',
-  'Stress', 'Sleep or Insomnia', 'Chronic Illness', 'Chronic Pain', 'Pregnancy/Prenatal/Postpartum',
+  'Anxiety',
+  'Depression',
+  'Trauma and PTSD',
+  'Relationship Issues',
+  'Grief',
+  'ADHD',
+  'Bipolar Disorder',
+  'Eating Disorders',
+  'LGBTQIA+',
+  'Life Transitions',
+  'Addiction',
+  'Anger Management',
+  'Coping Skills',
+  'Family Conflict',
+  'Self Esteem',
+  'Stress',
+  'Sleep or Insomnia',
+  'Chronic Illness',
+  'Chronic Pain',
+  'Pregnancy/Prenatal/Postpartum',
 ] as const
 
 const PROVIDERS_PER_PAGE = 10
@@ -65,9 +104,12 @@ const EMPTY_PATIENT = {
 function groupSlotsByDate(slots: Slot[]): Record<string, Slot[]> {
   return slots.reduce<Record<string, Slot[]>>((acc, slot) => {
     const key = new Date(slot.start_time_iso).toLocaleDateString(undefined, {
-      weekday: 'long', month: 'long', day: 'numeric',
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
     })
-    ;(acc[key] ??= []).push(slot)
+    if (!acc[key]) acc[key] = []
+    acc[key].push(slot)
     return acc
   }, {})
 }
@@ -90,7 +132,10 @@ function ProviderAvatar({
           className="provider-card-img"
         />
       ) : (
-        <span>{provider.first_name[0]}{provider.last_name[0]}</span>
+        <span>
+          {provider.first_name[0]}
+          {provider.last_name[0]}
+        </span>
       )}
     </div>
   )
@@ -391,8 +436,6 @@ export function SchedulingPage() {
 
   return (
     <div className="scheduling-page">
-
-
       {error && (
         <ErrorBanner
           error={error}
@@ -514,7 +557,7 @@ export function SchedulingPage() {
           {!loading && insurances.length > 0 && (
             <div className="search-form">
               <div className="ins-dropdown" ref={insuranceRef}>
-                <label className="ins-dropdown-label">Insurance plan</label>
+                <span className="ins-dropdown-label">Insurance plan</span>
                 <button
                   type="button"
                   className={`ins-dropdown-trigger ${insuranceOpen ? 'open' : ''}`}
@@ -532,7 +575,6 @@ export function SchedulingPage() {
                   <div className="ins-dropdown-panel">
                     <div className="ins-search-wrap">
                       <input
-                        autoFocus
                         type="text"
                         className="ins-search-input"
                         placeholder="Search plans…"
@@ -559,9 +601,7 @@ export function SchedulingPage() {
                               }}
                             >
                               {ins.carrier_display_name}
-                              {selectedInsurance?.id === ins.id && (
-                                <span className="ins-check" />
-                              )}
+                              {selectedInsurance?.id === ins.id && <span className="ins-check" />}
                             </button>
                           </li>
                         ))}
@@ -605,7 +645,14 @@ export function SchedulingPage() {
             ← Back
           </button>
           <h2>Any preferences for your provider?</h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: 0, marginBottom: '1.5rem' }}>
+          <p
+            style={{
+              fontSize: '0.88rem',
+              color: 'var(--text-secondary)',
+              marginTop: 0,
+              marginBottom: '1.5rem',
+            }}
+          >
             All fields are optional — we'll find the best matches.
           </p>
 
@@ -617,7 +664,9 @@ export function SchedulingPage() {
               selected={filterGenders}
               expandedId={expandedFilter}
               onExpand={setExpandedFilter}
-              onToggle={(v) => setFilterGenders((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+              onToggle={(v) =>
+                setFilterGenders((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
+              }
             />
           </div>
 
@@ -629,7 +678,9 @@ export function SchedulingPage() {
               selected={filterRaces}
               expandedId={expandedFilter}
               onExpand={setExpandedFilter}
-              onToggle={(v) => setFilterRaces((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+              onToggle={(v) =>
+                setFilterRaces((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
+              }
             />
           </div>
 
@@ -641,7 +692,11 @@ export function SchedulingPage() {
               selected={filterSpecializations}
               expandedId={expandedFilter}
               onExpand={setExpandedFilter}
-              onToggle={(v) => setFilterSpecializations((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+              onToggle={(v) =>
+                setFilterSpecializations((p) =>
+                  p.includes(v) ? p.filter((x) => x !== v) : [...p, v],
+                )
+              }
             />
           </div>
 
@@ -650,11 +705,14 @@ export function SchedulingPage() {
               type="button"
               className="btn-primary"
               disabled={loading}
-              onClick={() => void handleApplyFilters({
-                gender: filterGenders[0] as SearchProviderParams['gender'],
-                race: filterRaces[0] as SearchProviderParams['race'],
-                specialization: filterSpecializations[0] as SearchProviderParams['specialization'],
-              })}
+              onClick={() =>
+                void handleApplyFilters({
+                  gender: filterGenders[0] as SearchProviderParams['gender'],
+                  race: filterRaces[0] as SearchProviderParams['race'],
+                  specialization:
+                    filterSpecializations[0] as SearchProviderParams['specialization'],
+                })
+              }
             >
               {loading ? 'Searching…' : 'Find providers'}
             </button>
@@ -729,7 +787,11 @@ export function SchedulingPage() {
                       </p>
                       {p.slot_start_time && (
                         <span className="provider-card-avail">
-                          Available {new Date(p.slot_start_time).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}
+                          Available{' '}
+                          {new Date(p.slot_start_time).toLocaleDateString(undefined, {
+                            month: 'numeric',
+                            day: 'numeric',
+                          })}
                         </span>
                       )}
                     </div>
@@ -803,12 +865,21 @@ export function SchedulingPage() {
           </button>
           <div className="slots-provider-header">
             <ProviderAvatar provider={selectedProvider} size="lg" />
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '0.35rem',
+              }}
+            >
               <h2 style={{ margin: 0 }}>
                 {selectedProvider.first_name} {selectedProvider.last_name}
               </h2>
               {selectedInsurance && (
-                <span className="tag tag--insurance" style={{ alignSelf: 'flex-start' }}>Accepts {selectedInsurance.carrier_display_name}</span>
+                <span className="tag tag--insurance" style={{ alignSelf: 'flex-start' }}>
+                  Accepts {selectedInsurance.carrier_display_name}
+                </span>
               )}
             </div>
           </div>
@@ -816,55 +887,58 @@ export function SchedulingPage() {
           {slots.length === 0 && !loading && (
             <p style={{ color: 'var(--text-secondary)' }}>No upcoming slots available.</p>
           )}
-          {slots.length > 0 && (() => {
-            const slotsByDate = groupSlotsByDate(slots)
-            const dates = Object.keys(slotsByDate)
-            const firstDate = expandedDate ?? dates[0]
-            return (
-              <div className="slot-date-list">
-                {dates.map((date) => {
-                  const isOpen = firstDate === date
-                  return (
-                    <div key={date} className={`slot-date-group ${isOpen ? 'open' : ''}`}>
-                      <button
-                        type="button"
-                        className="slot-date-header"
-                        onClick={() => setExpandedDate(isOpen ? null : date)}
-                      >
-                        <span className="slot-date-label">{date}</span>
-                        <span className="slot-date-count">
-                          {slotsByDate[date].length} slot{slotsByDate[date].length !== 1 ? 's' : ''}
-                        </span>
-                        <span className={`slot-date-chevron ${isOpen ? 'open' : ''}`} />
-                      </button>
-                      {isOpen && (
-                        <div className="slot-time-grid">
-                          {slotsByDate[date].map((slot) => (
-                            <button
-                              key={`${slot.start_time_iso}-${slot.location}`}
-                              type="button"
-                              className="slot-time-chip"
-                              onClick={() => handleSelectSlot(slot)}
-                            >
-                              <span className="slot-time-chip-time">
-                                {new Date(slot.start_time_iso).toLocaleTimeString(undefined, {
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                              <span className="slot-time-chip-meta">
-                                {slot.location === 'telemedicine' ? 'Virtual' : 'In-person'} · {slot.duration_mins} min
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )
-          })()}
+          {slots.length > 0 &&
+            (() => {
+              const slotsByDate = groupSlotsByDate(slots)
+              const dates = Object.keys(slotsByDate)
+              const firstDate = expandedDate ?? dates[0]
+              return (
+                <div className="slot-date-list">
+                  {dates.map((date) => {
+                    const isOpen = firstDate === date
+                    return (
+                      <div key={date} className={`slot-date-group ${isOpen ? 'open' : ''}`}>
+                        <button
+                          type="button"
+                          className="slot-date-header"
+                          onClick={() => setExpandedDate(isOpen ? null : date)}
+                        >
+                          <span className="slot-date-label">{date}</span>
+                          <span className="slot-date-count">
+                            {slotsByDate[date].length} slot
+                            {slotsByDate[date].length !== 1 ? 's' : ''}
+                          </span>
+                          <span className={`slot-date-chevron ${isOpen ? 'open' : ''}`} />
+                        </button>
+                        {isOpen && (
+                          <div className="slot-time-grid">
+                            {slotsByDate[date].map((slot) => (
+                              <button
+                                key={`${slot.start_time_iso}-${slot.location}`}
+                                type="button"
+                                className="slot-time-chip"
+                                onClick={() => handleSelectSlot(slot)}
+                              >
+                                <span className="slot-time-chip-time">
+                                  {new Date(slot.start_time_iso).toLocaleTimeString(undefined, {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                                <span className="slot-time-chip-meta">
+                                  {slot.location === 'telemedicine' ? 'Virtual' : 'In-person'} ·{' '}
+                                  {slot.duration_mins} min
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
         </div>
       )}
 
@@ -1012,7 +1086,16 @@ export function SchedulingPage() {
           {appointmentStatuses.length === 0 && !loading && (
             <p style={{ color: 'var(--text-secondary)' }}>No appointments found.</p>
           )}
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ul
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+            }}
+          >
             {appointmentStatuses.map((appt) => (
               <li key={appt.appointment_id} className="slot-item">
                 <div

@@ -31,7 +31,6 @@
   display: block;
 }
 
-
 /* Cards */
 .card {
   padding: 1.25rem 1.5rem;
@@ -112,7 +111,6 @@
   text-decoration: underline;
 }
 
-
 /* Forms */
 .search-form {
   display: flex;
@@ -160,7 +158,9 @@
   font-weight: 400;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .ins-dropdown-trigger:hover,
@@ -208,7 +208,6 @@
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid var(--border);
 }
-
 
 .ins-search-input {
   width: 100%;
@@ -315,7 +314,6 @@
   background: var(--purple-light);
   color: var(--purple-dark);
 }
-
 
 /* Provider cards */
 .provider-list {
@@ -664,7 +662,7 @@
 }
 
 .checkmark::after {
-  content: '';
+  content: "";
   display: block;
   width: 10px;
   height: 18px;
@@ -738,7 +736,6 @@
   flex-direction: column;
   gap: 1rem;
 }
-
 
 /* Modal */
 .modal-overlay {
@@ -890,7 +887,6 @@
   align-items: center;
   gap: 0.5rem;
 }
-
 
 .empty-state h3 {
   margin: 0;

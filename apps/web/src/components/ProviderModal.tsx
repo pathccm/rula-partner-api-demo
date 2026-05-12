@@ -58,7 +58,10 @@ export function ProviderModal({
                 className="modal-avatar-img"
               />
             ) : (
-              <>{provider.first_name[0]}{provider.last_name[0]}</>
+              <>
+                {provider.first_name[0]}
+                {provider.last_name[0]}
+              </>
             )}
           </div>
           <div>
