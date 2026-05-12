@@ -532,7 +532,7 @@ export function SchedulingPage() {
             <button
               type="button"
               className="btn-primary"
-              disabled={!careType}
+              disabled={!careType || locationTypes.length === 0}
               onClick={() => {
                 setError(null)
                 setStep('insurance')
