@@ -61,198 +61,306 @@ beforeEach(() => {
   })
 })
 
-describe('SchedulingPage — initial render', () => {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async function goToInsurance() {
+  render(<SchedulingPage />)
+  await userEvent.click(screen.getByText('Therapy'))
+  await userEvent.click(screen.getByText('Virtual'))
+  await userEvent.click(screen.getByText('Continue'))
+  await waitFor(() => screen.getByText("What's your insurance?"))
+}
+
+async function selectInsurance(displayName: string) {
+  await goToInsurance()
+  await waitFor(() => screen.getByText('Select a plan…'))
+  await userEvent.click(screen.getByText('Select a plan…'))
+  await waitFor(() => screen.getByText(displayName))
+  await userEvent.click(screen.getByText(displayName))
+  await userEvent.click(screen.getByText('Continue'))
+}
+
+async function goToProviders() {
+  await selectInsurance('Aetna')
+  // filters step — skip to providers
+  await waitFor(() => screen.getByText('Find providers'))
+  await userEvent.click(screen.getByText('Find providers'))
+  await waitFor(() => screen.getByText('Available providers'))
+}
+
+async function goToSlots() {
+  await goToProviders()
+  await waitFor(() => screen.getAllByText('Book'))
+  await userEvent.click(screen.getAllByText('Book')[0])
+  await waitFor(() => screen.getByText('Sarah Chen'))
+}
+
+// ─── Step 1: Care type ────────────────────────────────────────────────────────
+
+describe('SchedulingPage — step 1: care type', () => {
   it('shows the care type step first', () => {
     render(<SchedulingPage />)
-    expect(screen.getByText('What kind of care are you looking for?')).toBeInTheDocument()
+    expect(screen.getByText('What type of care are you looking for?')).toBeInTheDocument()
   })
 
-  it('shows all four care type options', () => {
+  it('shows Therapy and Medication management options', () => {
     render(<SchedulingPage />)
-    expect(screen.getByText('Individual therapy')).toBeInTheDocument()
-    expect(screen.getByText('Couples therapy')).toBeInTheDocument()
-    expect(screen.getByText('Family therapy')).toBeInTheDocument()
-    expect(screen.getByText('Psychiatry')).toBeInTheDocument()
+    expect(screen.getByText('Therapy')).toBeInTheDocument()
+    expect(screen.getByText('Medication management')).toBeInTheDocument()
   })
 
-  it('Continue button is disabled until a care type is selected', () => {
+  it('Continue is disabled until a care type is selected', () => {
     render(<SchedulingPage />)
     expect(screen.getByText('Continue')).toBeDisabled()
   })
 
-  it('Continue button enables after selecting a care type', async () => {
+  it('Continue enables after selecting a care type and session format', async () => {
     render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
+    await userEvent.click(screen.getByText('Therapy'))
+    expect(screen.getByText('Continue')).toBeDisabled()
+    await userEvent.click(screen.getByText('Virtual'))
     expect(screen.getByText('Continue')).toBeEnabled()
+  })
+
+  it('can select and deselect session format options', async () => {
+    render(<SchedulingPage />)
+    const virtualBtn = screen.getByText('Virtual')
+    await userEvent.click(virtualBtn)
+    expect(virtualBtn.closest('button')).toHaveClass('selected')
+    await userEvent.click(virtualBtn)
+    expect(virtualBtn.closest('button')).not.toHaveClass('selected')
+  })
+
+  it('can select both session format options simultaneously', async () => {
+    render(<SchedulingPage />)
+    await userEvent.click(screen.getByText('Virtual'))
+    await userEvent.click(screen.getByText('In-person'))
+    expect(screen.getByText('Virtual').closest('button')).toHaveClass('selected')
+    expect(screen.getByText('In-person').closest('button')).toHaveClass('selected')
   })
 })
 
-describe('SchedulingPage — step 1 → step 2 (insurance)', () => {
+// ─── Step 2: Insurance ────────────────────────────────────────────────────────
+
+describe('SchedulingPage — step 2: insurance', () => {
   it('advances to insurance step after clicking Continue', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => {
-      expect(screen.getByText("What's your insurance?")).toBeInTheDocument()
-    })
+    await goToInsurance()
+    expect(screen.getByText("What's your insurance?")).toBeInTheDocument()
   })
 
   it('loads insurances when entering insurance step', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => {
-      expect(mockApi.getInsurances).toHaveBeenCalledOnce()
-    })
+    await goToInsurance()
+    await waitFor(() => expect(mockApi.getInsurances).toHaveBeenCalledOnce())
   })
 
-  it('renders the insurance dropdown with loaded options', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
+  it('opens the dropdown and shows insurance options', async () => {
+    await goToInsurance()
+    await waitFor(() => screen.getByText('Select a plan…'))
+    await userEvent.click(screen.getByText('Select a plan…'))
     await waitFor(() => {
       expect(screen.getByText('Aetna')).toBeInTheDocument()
       expect(screen.getByText('BlueCross')).toBeInTheDocument()
     })
   })
 
+  it('filters insurance options by search query', async () => {
+    await goToInsurance()
+    await waitFor(() => screen.getByText('Select a plan…'))
+    await userEvent.click(screen.getByText('Select a plan…'))
+    await waitFor(() => screen.getByPlaceholderText('Search plans…'))
+    await userEvent.type(screen.getByPlaceholderText('Search plans…'), 'Blue')
+    expect(screen.getByText('BlueCross')).toBeInTheDocument()
+    expect(screen.queryByText('Aetna')).not.toBeInTheDocument()
+  })
+
+  it('shows trigger label after selecting an insurance', async () => {
+    await goToInsurance()
+    await waitFor(() => screen.getByText('Select a plan…'))
+    await userEvent.click(screen.getByText('Select a plan…'))
+    await waitFor(() => screen.getByText('Aetna'))
+    await userEvent.click(screen.getByText('Aetna'))
+    expect(screen.getByText('Aetna')).toBeInTheDocument()
+  })
+
   it('shows error banner if getInsurances fails', async () => {
     mockApi.getInsurances.mockRejectedValue(new ApiError(502, 'Service unavailable'))
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument()
-    })
+    await goToInsurance()
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+  })
+
+  it('Pay out of pocket advances to filters step without insurance', async () => {
+    await goToInsurance()
+    await waitFor(() => screen.getByText('Pay out of pocket'))
+    await userEvent.click(screen.getByText('Pay out of pocket'))
+    await waitFor(() => screen.getByText('Any preferences for your provider?'))
   })
 })
 
-describe('SchedulingPage — step 2 → step 3 (providers)', () => {
-  it('calls searchProviders with the selected insurance network_name', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
+// ─── Step 3: Provider preferences (filters) ───────────────────────────────────
+
+describe('SchedulingPage — step 3: provider preferences', () => {
+  it('shows the filters step after selecting insurance', async () => {
+    await selectInsurance('Aetna')
+    expect(screen.getByText('Any preferences for your provider?')).toBeInTheDocument()
+  })
+
+  it('shows gender, race, and specialization filter sections', async () => {
+    await selectInsurance('Aetna')
+    expect(screen.getByText('Gender')).toBeInTheDocument()
+    expect(screen.getByText('Race / ethnicity')).toBeInTheDocument()
+    expect(screen.getByText('Specialization')).toBeInTheDocument()
+  })
+
+  it('can select and deselect a gender filter', async () => {
+    await selectInsurance('Aetna')
+    await userEvent.click(screen.getByText('Female'))
+    expect(screen.getByText('Female').closest('button')).toHaveClass('selected')
+    await userEvent.click(screen.getByText('Female'))
+    expect(screen.getByText('Female').closest('button')).not.toHaveClass('selected')
+  })
+
+  it('can select multiple specializations', async () => {
+    await selectInsurance('Aetna')
+    // expand specialization section so all options are visible
+    const moreBtns = screen.getAllByText(/\+\d+ more/)
+    await userEvent.click(moreBtns[moreBtns.length - 1])
+    await userEvent.click(screen.getByText('Anxiety'))
+    await userEvent.click(screen.getByText('Grief'))
+    expect(screen.getByText('Anxiety').closest('button')).toHaveClass('selected')
+    expect(screen.getByText('Grief').closest('button')).toHaveClass('selected')
+  })
+
+  it('expands a filter section with "see more"', async () => {
+    await selectInsurance('Aetna')
+    const moreBtn = screen.getAllByText(/\+\d+ more/)[0]
+    await userEvent.click(moreBtn)
+    expect(screen.getByText('Show less')).toBeInTheDocument()
+  })
+
+  it('calls searchProviders with gender filter when selected', async () => {
+    await selectInsurance('Aetna')
+    await userEvent.click(screen.getByText('Female'))
+    await userEvent.click(screen.getByText('Find providers'))
     await waitFor(() => {
       expect(mockApi.searchProviders).toHaveBeenCalledWith(
-        expect.objectContaining({ insurance: 'aetna' }),
+        expect.objectContaining({ gender: 'Female' }),
       )
     })
   })
 
-  it('shows provider names after search', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
+  it('calls searchProviders without filters when Skip is clicked', async () => {
+    await selectInsurance('Aetna')
+    await userEvent.click(screen.getByText('Female'))
+    await userEvent.click(screen.getByText('Skip'))
     await waitFor(() => {
-      expect(screen.getByText('Sarah Chen')).toBeInTheDocument()
-      expect(screen.getByText('James Okafor')).toBeInTheDocument()
+      expect(mockApi.searchProviders).toHaveBeenCalledWith(
+        expect.not.objectContaining({ gender: expect.anything() }),
+      )
     })
+  })
+
+  it('Back navigates to insurance step', async () => {
+    await selectInsurance('Aetna')
+    await userEvent.click(screen.getByText('← Back'))
+    expect(screen.getByText("What's your insurance?")).toBeInTheDocument()
+  })
+})
+
+// ─── Step 4: Provider results ─────────────────────────────────────────────────
+
+describe('SchedulingPage — step 4: provider results', () => {
+  it('shows providers with first name and last initial', async () => {
+    await goToProviders()
+    expect(screen.getByText('Sarah C.')).toBeInTheDocument()
+    expect(screen.getByText('James O.')).toBeInTheDocument()
   })
 
   it('shows empty state when no providers are found', async () => {
     mockApi.searchProviders.mockResolvedValue({ providers: [] })
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => {
-      expect(screen.getByText('No providers found')).toBeInTheDocument()
-    })
+    await goToProviders()
+    expect(screen.getByText('No providers found')).toBeInTheDocument()
   })
 
   it('shows error banner if searchProviders fails', async () => {
     mockApi.searchProviders.mockRejectedValue(new ApiError(502, 'Upstream failure'))
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument()
-    })
+    await selectInsurance('Aetna')
+    await waitFor(() => screen.getByText('Find providers'))
+    await userEvent.click(screen.getByText('Find providers'))
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
   })
 
-  it('passes care_category=psychiatry when Psychiatry is selected', async () => {
+  it('passes care_category=psychiatry when Medication management is selected', async () => {
     render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Psychiatry'))
+    await userEvent.click(screen.getByText('Medication management'))
+    await userEvent.click(screen.getByText('Virtual'))
     await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
+    await waitFor(() => screen.getByText("What's your insurance?"))
+    await waitFor(() => screen.getByText('Select a plan…'))
+    await userEvent.click(screen.getByText('Select a plan…'))
+    await waitFor(() => screen.getByText('Aetna'))
+    await userEvent.click(screen.getByText('Aetna'))
     await userEvent.click(screen.getByText('Continue'))
+    await waitFor(() => screen.getByText('Find providers'))
+    await userEvent.click(screen.getByText('Find providers'))
     await waitFor(() => {
       expect(mockApi.searchProviders).toHaveBeenCalledWith(
         expect.objectContaining({ care_category: 'psychiatry' }),
       )
     })
   })
+
+  it('Back navigates to the filters step', async () => {
+    await goToProviders()
+    await userEvent.click(screen.getByText('← Back'))
+    expect(screen.getByText('Any preferences for your provider?')).toBeInTheDocument()
+  })
 })
 
-describe('SchedulingPage — step 3 → step 4 (slots)', () => {
-  it('calls getSlots when View slots is clicked', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getAllByText('View slots'))
-    await userEvent.click(screen.getAllByText('View slots')[0])
+// ─── Step 5: Slots ────────────────────────────────────────────────────────────
+
+describe('SchedulingPage — step 5: slots', () => {
+  it('calls getSlots when Book is clicked', async () => {
+    await goToProviders()
+    await userEvent.click(screen.getAllByText('Book')[0])
     await waitFor(() => {
-      expect(mockApi.getSlots).toHaveBeenCalledWith('prov-1', 'CA', null)
+      expect(mockApi.getSlots).toHaveBeenCalledWith('prov-1', 'CA', 'telemedicine')
     })
   })
 
-  it('shows slots after provider is selected', async () => {
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getAllByText('View slots'))
-    await userEvent.click(screen.getAllByText('View slots')[0])
-    await waitFor(() => {
-      expect(screen.getByText('Select a time that works for you')).toBeInTheDocument()
-    })
+  it('shows provider name on the slots page', async () => {
+    await goToSlots()
+    expect(screen.getByText('Sarah Chen')).toBeInTheDocument()
+  })
+
+  it('shows slot dates as accordion rows', async () => {
+    await goToSlots()
+    const dateRows = screen.getAllByText(/slot/)
+    expect(dateRows.length).toBeGreaterThan(0)
   })
 
   it('shows error banner if getSlots fails', async () => {
     mockApi.getSlots.mockRejectedValue(new ApiError(404, 'Provider not found'))
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getAllByText('View slots'))
-    await userEvent.click(screen.getAllByText('View slots')[0])
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument()
-    })
+    await goToProviders()
+    await userEvent.click(screen.getAllByText('Book')[0])
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+  })
+
+  it('shows insurance tag when insurance was selected', async () => {
+    await goToSlots()
+    expect(screen.getByText('Accepts Aetna')).toBeInTheDocument()
   })
 })
 
-describe('SchedulingPage — error banner display', () => {
-  it('shows conflict error type for 409', async () => {
+// ─── Error handling ───────────────────────────────────────────────────────────
+
+describe('SchedulingPage — error handling', () => {
+  it('shows conflict error style for 409', async () => {
     mockApi.searchProviders.mockRejectedValue(new ApiError(409, 'Slot taken'))
-    render(<SchedulingPage />)
-    await userEvent.click(screen.getByText('Individual therapy'))
-    await userEvent.click(screen.getByText('Continue'))
-    await waitFor(() => screen.getByLabelText('Insurance plan'))
-    await userEvent.selectOptions(screen.getByLabelText('Insurance plan'), 'ins-1')
-    await userEvent.click(screen.getByText('Continue'))
+    await selectInsurance('Aetna')
+    await waitFor(() => screen.getByText('Find providers'))
+    await userEvent.click(screen.getByText('Find providers'))
     await waitFor(() => {
-      const alert = screen.getByRole('alert')
-      expect(alert.className).toContain('conflict')
+      expect(screen.getByRole('alert').className).toContain('conflict')
     })
   })
 })
