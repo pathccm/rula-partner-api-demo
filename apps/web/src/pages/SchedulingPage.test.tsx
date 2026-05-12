@@ -66,6 +66,7 @@ beforeEach(() => {
 async function goToInsurance() {
   render(<SchedulingPage />)
   await userEvent.click(screen.getByText('Therapy'))
+  await userEvent.click(screen.getByText('Virtual'))
   await userEvent.click(screen.getByText('Continue'))
   await waitFor(() => screen.getByText("What's your insurance?"))
 }
@@ -113,9 +114,11 @@ describe('SchedulingPage — step 1: care type', () => {
     expect(screen.getByText('Continue')).toBeDisabled()
   })
 
-  it('Continue enables after selecting a care type', async () => {
+  it('Continue enables after selecting a care type and session format', async () => {
     render(<SchedulingPage />)
     await userEvent.click(screen.getByText('Therapy'))
+    expect(screen.getByText('Continue')).toBeDisabled()
+    await userEvent.click(screen.getByText('Virtual'))
     expect(screen.getByText('Continue')).toBeEnabled()
   })
 
@@ -289,6 +292,7 @@ describe('SchedulingPage — step 4: provider results', () => {
   it('passes care_category=psychiatry when Medication management is selected', async () => {
     render(<SchedulingPage />)
     await userEvent.click(screen.getByText('Medication management'))
+    await userEvent.click(screen.getByText('Virtual'))
     await userEvent.click(screen.getByText('Continue'))
     await waitFor(() => screen.getByText("What's your insurance?"))
     await waitFor(() => screen.getByText('Select a plan…'))
@@ -319,7 +323,7 @@ describe('SchedulingPage — step 5: slots', () => {
     await goToProviders()
     await userEvent.click(screen.getAllByText('Book')[0])
     await waitFor(() => {
-      expect(mockApi.getSlots).toHaveBeenCalledWith('prov-1', 'CA', null)
+      expect(mockApi.getSlots).toHaveBeenCalledWith('prov-1', 'CA', 'telemedicine')
     })
   })
 
