@@ -54,7 +54,11 @@ beforeEach(() => {
   mockApi.getInsurances.mockResolvedValue({ insurances: MOCK_INSURANCES })
   mockApi.searchProviders.mockResolvedValue({ providers: MOCK_PROVIDERS })
   mockApi.getSlots.mockResolvedValue({ slots: MOCK_SLOTS })
-  mockApi.getProviderDetail.mockResolvedValue({ id: 'prov-1', first_name: 'Sarah', last_name: 'Chen' })
+  mockApi.getProviderDetail.mockResolvedValue({
+    id: 'prov-1',
+    first_name: 'Sarah',
+    last_name: 'Chen',
+  })
 })
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
