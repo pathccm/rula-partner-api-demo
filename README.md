@@ -10,11 +10,11 @@ A reference implementation showing how a partner can integrate with Rula's Partn
 
 This monorepo shows a complete end-to-end integration with the [Rula Partner Scheduling API](openapi/partner-scheduling.yaml):
 
-1. **Provider search** — filter by state, insurance carrier, care type, and session format
-2. **Provider profiles** — view bio, approach, focus areas, accepted insurance, and more
-3. **Slot availability** — retrieve open appointment slots for a provider
-4. **Appointment booking** — create a patient record and book an appointment
-5. **Partial mock mode** — read endpoints (insurances, providers, slots) always hit the real partner API; write endpoints (patient creation, booking) are mocked via `USE_MOCK_API=true`
+1. **Provider search** - filter by state, insurance carrier, care type, and session format
+2. **Provider profiles** - view bio, approach, focus areas, accepted insurance, and more
+3. **Slot availability** - retrieve open appointment slots for a provider
+4. **Appointment booking** - create a patient record and book an appointment
+5. **Partial mock mode** - read endpoints (insurances, providers, slots) always hit the real partner API; write endpoints (patient creation, booking) are mocked via `USE_MOCK_API=true`
 
 ---
 
@@ -47,7 +47,7 @@ apps/web  ──── /v1/* proxy ────►  apps/api (port 4004)
                       + Auth0 M2M token     mocks/ or live API
 ```
 
-In production, `apps/api` serves `apps/web/dist/` as static files — both apps run on the same origin.
+In production, `apps/api` serves `apps/web/dist/` as static files - both apps run on the same origin.
 
 ---
 
@@ -59,11 +59,11 @@ Copy `apps/api/.env.example` and fill in the values.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `PARTNER_API_BASE_URL` | Yes | — | Live partner API base URL |
-| `PARTNER_API_AUDIENCE` | Yes | — | OAuth2 audience for the partner API |
-| `AUTH0_TOKEN_URL` | Yes | — | Auth0 `/oauth/token` endpoint for M2M tokens |
-| `PARTNER_API_CLIENT_ID` | Yes | — | OAuth2 client ID |
-| `PARTNER_API_CLIENT_SECRET` | Yes | — | OAuth2 client secret |
+| `PARTNER_API_BASE_URL` | Yes | - | Live partner API base URL |
+| `PARTNER_API_AUDIENCE` | Yes | - | OAuth2 audience for the partner API |
+| `AUTH0_TOKEN_URL` | Yes | - | Auth0 `/oauth/token` endpoint for M2M tokens |
+| `PARTNER_API_CLIENT_ID` | Yes | - | OAuth2 client ID |
+| `PARTNER_API_CLIENT_SECRET` | Yes | - | OAuth2 client secret |
 | `USE_MOCK_API` | No | `true` | When `true`, mocks patient creation and booking |
 | `APP_BASE_URL` | No | `http://localhost:3000` | Allowed CORS origin |
 | `PORT` | No | `4004` | API server port |
@@ -77,6 +77,20 @@ Copy `apps/web/.env.example`. Only needed when running the Vite dev server separ
 | Variable | Required | Description |
 |---|---|---|
 | `VITE_API_BASE_URL` | No | URL of `apps/api`. Defaults to `http://localhost:4004` via the Vite proxy. Omit when the frontend is served by the API. |
+
+---
+
+## Getting credentials
+
+To use this demo against the live Rula Partner Scheduling API, you need OAuth2 client credentials issued by Rula:
+
+- `PARTNER_API_CLIENT_ID`
+- `PARTNER_API_CLIENT_SECRET`
+- `PARTNER_API_BASE_URL`
+- `PARTNER_API_AUDIENCE`
+- `AUTH0_TOKEN_URL`
+
+Contact your Rula partner representative or email [epd-partnerships-deals-eng@rula.com](mailto:epd-partnerships-deals-eng@rula.com) to request credentials. Until then, the demo runs fully in mock mode (`USE_MOCK_API=true`) without any credentials.
 
 ---
 
@@ -99,8 +113,8 @@ cp apps/api/.env.example apps/api/.env
 
 # 4. Start both apps
 pnpm dev
-# — apps/api starts on http://localhost:4004
-# — apps/web starts on http://localhost:3000
+# apps/api starts on http://localhost:4004
+# apps/web starts on http://localhost:3000
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -122,37 +136,34 @@ Write endpoints (`POST /v1/patients`, `POST /v1/appointments`) are controlled by
 
 ## Deployment
 
-### Deploy on Railway
+### Deploy to Heroku
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/pathccm/partner-scheduling-api-demo)
+**Prerequisites**: [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed and logged in.
 
-One service, one click. Railway detects `railway.toml` and runs the full monorepo build automatically.
+```bash
+# 1. Create a new Heroku app
+heroku create your-app-name
 
-**Required environment variables** (set in the Railway dashboard under Variables):
+# 2. Set environment variables from your local .env file
+# This avoids typing secrets inline in your shell history.
+heroku config:set $(grep -v '^#' apps/api/.env | grep -v '^$' | xargs) \
+  APP_BASE_URL=https://your-app-name.herokuapp.com \
+  NODE_ENV=production \
+  -a your-app-name
 
-| Variable | Description |
-|---|---|
-| `PARTNER_API_BASE_URL` | Live partner API base URL |
-| `PARTNER_API_AUDIENCE` | OAuth2 audience for the partner API |
-| `AUTH0_TOKEN_URL` | Auth0 `/oauth/token` endpoint |
-| `PARTNER_API_CLIENT_ID` | OAuth2 client ID |
-| `PARTNER_API_CLIENT_SECRET` | OAuth2 client secret |
-| `APP_BASE_URL` | Set to your Railway public URL (e.g. `https://your-app.railway.app`) |
+# 3. Deploy
+git push heroku main
+```
 
 **Recommended variables:**
 
 | Variable | Value | Description |
 |---|---|---|
-| `USE_MOCK_API` | `true` | Mocks write endpoints — no real records created |
+| `USE_MOCK_API` | `true` | Mocks write endpoints - no real records created |
 | `API_KEY` | random secret | Requires `x-api-key` header on all `/v1/*` requests |
 | `NODE_ENV` | `production` | Disables pretty-print logging |
 
-**How it works:**
-
-- Build command: `pnpm install --frozen-lockfile && pnpm build`
-- Start command: `node apps/api/dist/index.js`
-- `apps/api` serves the built `apps/web/dist/` as static files — no separate frontend deployment needed
-- Health check: `GET /health` → `{ "status": "ok", "mockMode": true }`
+`apps/api` serves the built `apps/web/dist/` as static files - no separate frontend deployment needed. Health check: `GET /health`.
 
 ---
 
@@ -161,7 +172,7 @@ One service, one click. Railway detects `railway.toml` and runs the full monorep
 1. Open [http://localhost:3000](http://localhost:3000)
 2. Select a **care type** (Individual, Couples, Family, or Psychiatry), **session format** (Video or In person), and **state**
 3. Select your **insurance** plan (or pay out of pocket)
-4. Browse **providers** — click **About** to view a full profile, **View slots** to continue
+4. Browse **providers** - click **About** to view a full profile, **View slots** to continue
 5. Select an **appointment slot**
 6. Enter **patient information** and click **Confirm appointment**
 7. View the **booking confirmation** and appointment status
@@ -170,8 +181,8 @@ One service, one click. Railway detects `railway.toml` and runs the full monorep
 
 ## Known limitations
 
-- Demo only — not production-ready
-- No session persistence — state resets on page refresh
+- Demo only - not production-ready
+- No session persistence - state resets on page refresh
 - Mock patient/appointment data uses generated IDs and will not appear in the live partner system
 
 ---
@@ -181,7 +192,7 @@ One service, one click. Railway detects `railway.toml` and runs the full monorep
 > Tested against partner-scheduling-api spec **v0.23.2**
 
 The committed spec is at [`openapi/partner-scheduling.yaml`](openapi/partner-scheduling.yaml).
-All proxy route request/response types are generated from it — no manual `any` casts.
+All proxy route request/response types are generated from it - no manual `any` casts.
 
 View it interactively: paste the file into [editor.swagger.io](https://editor.swagger.io) or [redocly.com/redoc](https://redocly.com/redoc/).
 
@@ -189,6 +200,6 @@ View it interactively: paste the file into [editor.swagger.io](https://editor.sw
 
 Replace `openapi/partner-scheduling.yaml` with the new spec, then:
 
-1. Run `pnpm generate:client` — regenerates `packages/api-client/src/generated.ts`
+1. Run `pnpm generate:client` - regenerates `packages/api-client/src/generated.ts`
 2. Fix any TypeScript errors surfaced by the new types
 3. Update the version note above and commit both files

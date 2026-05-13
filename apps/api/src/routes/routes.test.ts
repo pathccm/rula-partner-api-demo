@@ -5,7 +5,7 @@ const { mockConfig } = vi.hoisted(() => {
   const mockConfig = {
     USE_MOCK_API: true,
     AUTH0_TOKEN_URL: 'https://test.auth0.com/oauth/token',
-    PARTNER_API_BASE_URL: 'https://api.test.rula.com',
+    PARTNER_API_BASE_URL: 'https://api.test.example.com',
     PARTNER_API_CLIENT_ID: 'test-client-id',
     PARTNER_API_CLIENT_SECRET: 'test-client-secret',
     PARTNER_API_TIMEOUT_MS: 10_000,
