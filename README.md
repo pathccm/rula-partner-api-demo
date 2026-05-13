@@ -122,12 +122,37 @@ Write endpoints (`POST /v1/patients`, `POST /v1/appointments`) are controlled by
 
 ## Deployment
 
-For a quick cloud demo:
+### Deploy on Railway
 
-1. **`apps/api`** — deploy as a Node.js service (Railway, Render, Fly.io). Set all env vars. The API will serve the built frontend from `apps/web/dist/`.
-2. Build the frontend: `pnpm --filter @partner-scheduling-demo/web build`
-3. The built `apps/web/dist/` is served automatically by the API at the same origin — no separate frontend deployment needed.
-4. Set `APP_BASE_URL` in `apps/api` to the deployed service URL.
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/pathccm/partner-scheduling-api-demo)
+
+One service, one click. Railway detects `railway.toml` and runs the full monorepo build automatically.
+
+**Required environment variables** (set in the Railway dashboard under Variables):
+
+| Variable | Description |
+|---|---|
+| `PARTNER_API_BASE_URL` | Live partner API base URL |
+| `PARTNER_API_AUDIENCE` | OAuth2 audience for the partner API |
+| `AUTH0_TOKEN_URL` | Auth0 `/oauth/token` endpoint |
+| `PARTNER_API_CLIENT_ID` | OAuth2 client ID |
+| `PARTNER_API_CLIENT_SECRET` | OAuth2 client secret |
+| `APP_BASE_URL` | Set to your Railway public URL (e.g. `https://your-app.railway.app`) |
+
+**Recommended variables:**
+
+| Variable | Value | Description |
+|---|---|---|
+| `USE_MOCK_API` | `true` | Mocks write endpoints — no real records created |
+| `API_KEY` | random secret | Requires `x-api-key` header on all `/v1/*` requests |
+| `NODE_ENV` | `production` | Disables pretty-print logging |
+
+**How it works:**
+
+- Build command: `pnpm install --frozen-lockfile && pnpm build`
+- Start command: `node apps/api/dist/index.js`
+- `apps/api` serves the built `apps/web/dist/` as static files — no separate frontend deployment needed
+- Health check: `GET /health` → `{ "status": "ok", "mockMode": true }`
 
 ---
 
