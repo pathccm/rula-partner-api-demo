@@ -767,7 +767,7 @@
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -833,6 +833,7 @@
 .modal-body {
   padding: 1.25rem 1.75rem;
   flex: 1;
+  overflow-y: auto;
 }
 
 .modal-section {

@@ -776,7 +776,7 @@ export function SchedulingPage() {
               <p>Try going back and selecting a different insurance plan or state.</p>
               <div className="empty-state-support">
                 <span>Need help finding care?</span>
-                <a href="mailto:support@rula.com">Contact support</a>
+                <a href="mailto:support@example.com">Contact support</a>
               </div>
             </div>
           )}
