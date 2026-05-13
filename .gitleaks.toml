@@ -1,0 +1,18 @@
+# gitleaks configuration
+# Run locally: gitleaks detect --source . --log-opts="--all" -v
+# Docs: https://github.com/gitleaks/gitleaks
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow placeholder values in .env.example files"
+paths = [
+  '''.env\.example''',
+]
+regexes = [
+  '''your-client-id''',
+  '''your-client-secret''',
+  '''your-tenant\.auth0\.com''',
+  '''api\.partner\.example\.com''',
+]
