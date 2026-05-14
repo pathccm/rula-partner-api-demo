@@ -1058,7 +1058,8 @@ export function SchedulingPage() {
             </p>
             <div className="appt-details">
               <p>
-                <strong>Provider:</strong> {selectedProvider?.first_name} {selectedProvider?.last_name}
+                <strong>Provider:</strong> {selectedProvider?.first_name}{' '}
+                {selectedProvider?.last_name}
               </p>
               <p>
                 <strong>Confirmation ID:</strong> {appointment.appointment_id}
