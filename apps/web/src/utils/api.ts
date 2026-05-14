@@ -85,14 +85,6 @@ export interface Patient {
 
 export interface Appointment {
   appointment_id: string
-  provider_id: string
-  patient_id: string
-  appointment_slot: string
-  appointment_details: {
-    is_virtual: boolean
-    appointment_type: string
-    two_letter_state: string
-  }
   status: string
 }
 
@@ -210,6 +202,10 @@ export const api = {
     email: string
     date_of_birth: string
     location: string
+    care_types: string[]
+    is_eap_referral: boolean
+    insurance_id?: string
+    subscriber_id?: string
   }) {
     return request<Patient>('/v1/patients', {
       method: 'POST',

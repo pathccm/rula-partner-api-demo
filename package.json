@@ -1,5 +1,5 @@
 {
-  "name": "partner-scheduling-api-demo",
+  "name": "rula-partner-api-demo",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@10.29.3",
@@ -11,7 +11,7 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "format": "biome format --write .",
-    "generate:client": "pnpm --filter @partner-scheduling-demo/api-client generate"
+    "generate:client": "pnpm --filter @partner-scheduling-demo/api-client generate && biome format --write packages/api-client/src/generated.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

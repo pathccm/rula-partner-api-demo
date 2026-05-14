@@ -26,7 +26,7 @@ const app = await buildApp({
 
 try {
   const address = await app.listen({ port: config.PORT, host: '0.0.0.0' })
-  app.log.info(`Server listening at ${address} (mockMode=${config.USE_MOCK_API})`)
+  app.log.info(`Server listening at ${address} (mockBookings=${config.MOCK_BOOKINGS})`)
 } catch (err) {
   app.log.error(err)
   process.exit(1)

@@ -6,6 +6,15 @@ export async function insurancesRoutes(app: FastifyInstance) {
   app.get('/v1/insurances', async (request) => {
     const { state } = request.query as { state?: string }
     const params = state ? `?state=${encodeURIComponent(state)}` : ''
-    return partnerApiClient.request<InsurancesResponse>(`/v1/insurances${params}`)
+    const res = await partnerApiClient.request<InsurancesResponse>(`/v1/insurances${params}`)
+    const seen = new Set<string>()
+    return {
+      ...res,
+      insurances: res.insurances.filter((ins) => {
+        if (seen.has(ins.carrier_display_name)) return false
+        seen.add(ins.carrier_display_name)
+        return true
+      }),
+    }
   })
 }

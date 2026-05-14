@@ -226,12 +226,6 @@ export interface components {
       /** @example Unprocessable Entity */
       message: string
     }
-    BadGatewayError: {
-      /** @example Bad Gateway */
-      message: string
-      /** @description The trace ID for the error */
-      trace_id?: string
-    }
     NotFoundError: {
       /** @example Not Found */
       message: string
@@ -1117,7 +1111,7 @@ export interface operations {
         provider_uuid: components['schemas']['Uuid']
         /** @description Two-letter state code (e.g., "CA" for California). */
         two_letter_state: string
-        /** @description A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced. */
+        /** @description A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced, but start cannot be less than 25 hours from now, as this is outside of the bookable range. */
         start_time_range?: string[]
         /** @description Array of location types to filter appointment slots by (in-person vs virtual). */
         location_type: ('in_person' | 'telemedicine')[]
@@ -1191,7 +1185,7 @@ export interface operations {
         }
         content?: never
       }
-      /** @description Unprocessable Entity - Business logic validation failure (e.g., EAP with psychiatry not supported, patient is a minor) */
+      /** @description Unprocessable Entity - Business logic validation failure (e.g., EAP with psychiatry not supported, patient is a minor, patient could not be created for some other reason) */
       422: {
         headers: {
           [name: string]: unknown
@@ -1209,15 +1203,6 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['InternalServerError']
-        }
-      }
-      /** @description Bad Gateway - External service failure (e.g., patient identification failed, insurance validation failed) */
-      502: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BadGatewayError']
         }
       }
     }

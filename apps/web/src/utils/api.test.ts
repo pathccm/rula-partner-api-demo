@@ -175,6 +175,8 @@ describe('api.createPatient', () => {
       email: 'jane@example.com',
       date_of_birth: '1990-01-01',
       location: 'CA',
+      care_types: ['Individual'],
+      is_eap_referral: false,
     }
     mockFetchOk({ patient_id: 'pt-1', partner_patient_id: 'p-1' })
     await api.createPatient(data)
