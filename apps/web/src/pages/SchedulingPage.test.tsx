@@ -90,8 +90,8 @@ async function goToProviders() {
 
 async function goToSlots() {
   await goToProviders()
-  await waitFor(() => screen.getAllByText('Book'))
-  await userEvent.click(screen.getAllByText('Book')[0])
+  await waitFor(() => screen.getAllByText('View slots'))
+  await userEvent.click(screen.getAllByText('View slots')[0])
   await waitFor(() => screen.getByText('Sarah Chen'))
 }
 
@@ -319,9 +319,9 @@ describe('SchedulingPage — step 4: provider results', () => {
 // ─── Step 5: Slots ────────────────────────────────────────────────────────────
 
 describe('SchedulingPage — step 5: slots', () => {
-  it('calls getSlots when Book is clicked', async () => {
+  it('calls getSlots when View slots is clicked', async () => {
     await goToProviders()
-    await userEvent.click(screen.getAllByText('Book')[0])
+    await userEvent.click(screen.getAllByText('View slots')[0])
     await waitFor(() => {
       expect(mockApi.getSlots).toHaveBeenCalledWith('prov-1', 'CA', 'telemedicine')
     })
@@ -341,7 +341,7 @@ describe('SchedulingPage — step 5: slots', () => {
   it('shows error banner if getSlots fails', async () => {
     mockApi.getSlots.mockRejectedValue(new ApiError(404, 'Provider not found'))
     await goToProviders()
-    await userEvent.click(screen.getAllByText('Book')[0])
+    await userEvent.click(screen.getAllByText('View slots')[0])
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
   })
 
