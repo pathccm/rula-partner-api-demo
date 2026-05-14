@@ -776,7 +776,7 @@ export function SchedulingPage() {
               <p>Try going back and selecting a different insurance plan or state.</p>
               <div className="empty-state-support">
                 <span>Need help finding care?</span>
-                <a href="mailto:support@example.com">Contact support</a>
+                <a href="mailto:epd-partnerships-deals-eng@rula.com">Contact support</a>
               </div>
             </div>
           )}
@@ -815,7 +815,7 @@ export function SchedulingPage() {
                         onClick={() => handleSelectProvider(p)}
                         disabled={loading}
                       >
-                        {loading && selectedProvider?.id === p.id ? 'Loading…' : 'Book'}
+                        {loading && selectedProvider?.id === p.id ? 'Loading…' : 'View slots'}
                       </button>
                     </div>
                   </div>
@@ -863,7 +863,7 @@ export function SchedulingPage() {
         />
       )}
 
-      {/* Step 4 — Slots */}
+      {/* Step 5 — Slots */}
       {step === 'slots' && selectedProvider && (
         <div className="card">
           <button type="button" className="back-link" onClick={() => setStep('providers')}>
@@ -947,7 +947,7 @@ export function SchedulingPage() {
         </div>
       )}
 
-      {/* Step 5 — Patient form */}
+      {/* Step 6 — Patient form */}
       {step === 'patient' && selectedSlot && selectedProvider && (
         <div className="card">
           <button type="button" className="back-link" onClick={() => setStep('slots')}>
@@ -1026,7 +1026,7 @@ export function SchedulingPage() {
         </div>
       )}
 
-      {/* Step 6 — Confirmed */}
+      {/* Step 7 — Confirmed */}
       {step === 'confirmed' && appointment && (
         <div className="card">
           <div className="confirmation">
@@ -1084,7 +1084,7 @@ export function SchedulingPage() {
         </div>
       )}
 
-      {/* Step 7 — Status */}
+      {/* Step 8 — Status */}
       {step === 'status' && (
         <div className="card">
           <h2>Appointment status</h2>
