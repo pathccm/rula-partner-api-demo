@@ -1,11 +1,26 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 0.23.2
+  version: 0.23.5
   description: >
     Rula's API for partners. This API is currently a WIP and may change at any time.
 
     Updates:
+    v0.23.5
+      Changelog:
+        + Changed POST /v1/patients response for identification and insurance validation failures from 502 to 422
+
+    v0.23.4
+      Changelog:
+        + Additional clarification on start_time_range description on GET /v1/providers/slots
+        + GET /v1/providers/slots no longer allows a start in start_time_range outside of bookable range
+        + I.E. less than 25 hours from now
+
+    v0.23.3
+      Changelog:
+        + Fixed is_eap_referral conditional validation to allow true when is_self_pay is not provided
+        + Added custom error messages for if conditional failures for PatientCreateRequest
+
     v0.23.2
       Changelog:
         + Clarified start_time_range description on GET /v1/providers/slots
@@ -353,7 +368,7 @@ paths:
           in: query
           name: start_time_range
           required: false
-          description: A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced.
+          description: A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced, but start cannot be less than 25 hours from now, as this is outside of the bookable range.
         - schema:
             type: array
             uniqueItems: true
@@ -414,19 +429,13 @@ paths:
         "401":
           description: Unauthorized, invalid or expired token
         "422":
-          description: Unprocessable Entity - Business logic validation failure (e.g., EAP with psychiatry not supported, patient is a minor)
+          description: Unprocessable Entity - Business logic validation failure (e.g., EAP with psychiatry not supported, patient is a minor, patient could not be created for some other reason)
           content:
             application/json:
               schema:
                 oneOf:
                   - $ref: "#/components/schemas/RequestValidationError"
                   - $ref: "#/components/schemas/UnprocessableEntityError"
-        "502":
-          description: Bad Gateway - External service failure (e.g., patient identification failed, insurance validation failed)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BadGatewayError"
         "500":
           description: Internal Server Error
           content:
@@ -844,6 +853,8 @@ components:
                 then:
                   required:
                     - subscriber_id
+                errorMessage:
+                  if: "Conditional failed. Must provide subscriber_id for non-EAP referral unless patient is self-pay"
               - if:
                   properties:
                     is_self_pay:
@@ -851,7 +862,11 @@ components:
                 then:
                   required:
                     - insurance_id
+                errorMessage:
+                  if: "Conditional failed. Must provide insurance_id if patient is not self-pay"
               - if:
+                  required:
+                    - is_self_pay
                   properties:
                     is_self_pay:
                       const: true
@@ -859,6 +874,9 @@ components:
                   properties:
                     is_eap_referral:
                       const: false
+                      errorMessage: "must be equal to false when using self-pay"
+                errorMessage:
+                  if: "Conditional failed. Patient cannot be an EAP referral if using self-pay"
       required: true
     ProvidersSearchRequest:
       required: true
@@ -1721,17 +1739,6 @@ components:
         message:
           type: string
           example: Unprocessable Entity
-      required:
-        - message
-    BadGatewayError:
-      type: object
-      properties:
-        message:
-          type: string
-          example: Bad Gateway
-        trace_id:
-          type: string
-          description: The trace ID for the error
       required:
         - message
     NotFoundError:

@@ -1,4 +1,4 @@
-# partner-scheduling-api-demo
+# rula-partner-api-demo
 
 > **Demo/integration sample code only, not production reference. Do not use real patient data.**
 
@@ -21,7 +21,7 @@ This monorepo shows a complete end-to-end integration with the [Rula Partner Sch
 ## Architecture
 
 ```
-partner-scheduling-api-demo/
+rula-partner-api-demo/
 ├── apps/
 │   ├── web/          React 19 + Vite SPA (port 3000 in dev)
 │   └── api/          Fastify BFF / proxy server (port 4004)
@@ -99,8 +99,8 @@ Contact your Rula partner representative or email [epd-partnerships-deals-eng@ru
 
 ```bash
 # 1. Clone
-git clone https://github.com/pathccm/partner-scheduling-api-demo.git
-cd partner-scheduling-api-demo
+git clone https://github.com/pathccm/rula-partner-api-demo.git
+cd rula-partner-api-demo
 
 # 2. Install all workspace dependencies
 pnpm install
@@ -187,7 +187,7 @@ git push heroku main
 
 ## OpenAPI spec and typed client
 
-> Tested against partner-scheduling-api spec **v0.23.2**
+> Tested against partner-scheduling-api spec **v0.23.5**
 
 The committed spec is at [`openapi/partner-scheduling.yaml`](openapi/partner-scheduling.yaml).
 All proxy route request/response types are generated from it - no manual `any` casts.
