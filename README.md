@@ -30,8 +30,7 @@ partner-scheduling-api-demo/
 │   └── shared/       Shared TypeScript types
 ├── openapi/
 │   └── partner-scheduling.yaml   Partner API spec (v0.23.2)
-├── mocks/            JSON fixtures for mocked write endpoints
-└── docs/
+└── mocks/            JSON fixtures for mocked write endpoints
 ```
 
 ```
@@ -145,7 +144,6 @@ Write endpoints (`POST /v1/patients`, `POST /v1/appointments`) are controlled by
 heroku create your-app-name
 
 # 2. Set environment variables from your local .env file
-# This avoids typing secrets inline in your shell history.
 heroku config:set $(grep -v '^#' apps/api/.env | grep -v '^$' | xargs) \
   APP_BASE_URL=https://your-app-name.herokuapp.com \
   NODE_ENV=production \
@@ -170,7 +168,7 @@ git push heroku main
 ## Demo walkthrough
 
 1. Open [http://localhost:3000](http://localhost:3000)
-2. Select a **care type** (Individual, Couples, Family, or Psychiatry), **session format** (Video or In person), and **state**
+2. Select a **care type** (Therapy or Psychiatry / Medication management), **session format** (Virtual or In-person), and **state**
 3. Select your **insurance** plan (or pay out of pocket)
 4. Browse **providers** - click **About** to view a full profile, **View slots** to continue
 5. Select an **appointment slot**
