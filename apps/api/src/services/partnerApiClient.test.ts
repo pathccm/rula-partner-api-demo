@@ -4,7 +4,7 @@ import { partnerApiClient } from './partnerApiClient.js'
 
 const { mockConfig } = vi.hoisted(() => {
   const mockConfig = {
-    USE_MOCK_API: false,
+    MOCK_BOOKINGS: false,
     PARTNER_API_BASE_URL: 'https://api.partner.example.com',
     PARTNER_API_TIMEOUT_MS: 10_000,
   }

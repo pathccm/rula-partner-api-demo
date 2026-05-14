@@ -14,7 +14,7 @@ This monorepo shows a complete end-to-end integration with the [Rula Partner Sch
 2. **Provider profiles** - view bio, approach, focus areas, accepted insurance, and more
 3. **Slot availability** - retrieve open appointment slots for a provider
 4. **Appointment booking** - create a patient record and book an appointment
-5. **Partial mock mode** - read endpoints (insurances, providers, slots) always hit the real partner API; write endpoints (patient creation, booking) are mocked via `USE_MOCK_API=true`
+5. **Partial mock mode** - read endpoints (insurances, providers, slots) always hit the real partner API; write endpoints (patient creation, booking) are mocked via `MOCK_BOOKINGS=true`
 
 ---
 
@@ -42,7 +42,7 @@ apps/web  ──── /v1/* proxy ────►  apps/api (port 4004)
                               ┌─────────┴─────────┐
                               │ reads              │ writes
                               ▼                    ▼
-                     PARTNER_API_BASE_URL   USE_MOCK_API=true?
+                     PARTNER_API_BASE_URL   MOCK_BOOKINGS=true?
                       + Auth0 M2M token     mocks/ or live API
 ```
 
@@ -63,7 +63,7 @@ Copy `apps/api/.env.example` and fill in the values.
 | `AUTH0_TOKEN_URL` | Yes | - | Auth0 `/oauth/token` endpoint for M2M tokens |
 | `PARTNER_API_CLIENT_ID` | Yes | - | OAuth2 client ID |
 | `PARTNER_API_CLIENT_SECRET` | Yes | - | OAuth2 client secret |
-| `USE_MOCK_API` | No | `true` | When `true`, mocks patient creation and booking |
+| `MOCK_BOOKINGS` | No | `true` | When `true`, mocks patient creation and booking |
 | `APP_BASE_URL` | No | `http://localhost:3000` | Allowed CORS origin |
 | `PORT` | No | `4004` | API server port |
 | `NODE_ENV` | No | `development` | `development` \| `production` \| `test` |
@@ -89,7 +89,7 @@ To use this demo against the live Rula Partner Scheduling API, you need OAuth2 c
 - `PARTNER_API_AUDIENCE`
 - `AUTH0_TOKEN_URL`
 
-Contact your Rula partner representative or email [epd-partnerships-deals-eng@rula.com](mailto:epd-partnerships-deals-eng@rula.com) to request credentials. Until then, the demo runs fully in mock mode (`USE_MOCK_API=true`) without any credentials.
+Contact your Rula partner representative or email [epd-partnerships-deals-eng@rula.com](mailto:epd-partnerships-deals-eng@rula.com) to request credentials. Until then, the demo runs fully in mock mode (`MOCK_BOOKINGS=true`) without any credentials.
 
 ---
 
@@ -120,16 +120,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Mock vs live mode
+## Mock vs live booking
 
 Read endpoints (`GET /v1/insurances`, `POST /v1/providers/search`, `GET /v1/providers/slots`, `GET /v1/providers/:uuid`) always call the real partner API and always require valid credentials.
 
-Write endpoints (`POST /v1/patients`, `POST /v1/appointments`) are controlled by `USE_MOCK_API`:
+Write endpoints (`POST /v1/patients`, `POST /v1/appointments`) follow this logic:
 
-| `USE_MOCK_API` | Patient creation | Appointment booking |
-|---|---|---|
-| `true` (default) | Returns a mock patient ID | Returns a mock appointment after a 2s delay |
-| `false` | Calls live partner API | Calls live partner API |
+| `MOCK_BOOKINGS` | State | Patient creation | Appointment booking |
+|---|---|---|---|
+| `true` (default) | any | Returns a mock patient ID | Returns a mock appointment after a 2s delay |
+| `false` | `MB` | Calls live partner API | Calls live partner API |
+| `false` | any other | Returns a mock patient ID | Returns a mock appointment after a 2s delay |
+
+`MB` is Rula's test state. Set `MOCK_BOOKINGS=false` and select `MB` to test real end-to-end booking.
 
 ---
 
@@ -157,7 +160,7 @@ git push heroku main
 
 | Variable | Value | Description |
 |---|---|---|
-| `USE_MOCK_API` | `true` | Mocks write endpoints - no real records created |
+| `MOCK_BOOKINGS` | `true` | Mocks write endpoints - no real records created |
 | `API_KEY` | random secret | Requires `x-api-key` header on all `/v1/*` requests |
 | `NODE_ENV` | `production` | Disables pretty-print logging |
 

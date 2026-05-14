@@ -77,6 +77,8 @@ async function selectInsurance(displayName: string) {
   await userEvent.click(screen.getByText('Select a plan…'))
   await waitFor(() => screen.getByText(displayName))
   await userEvent.click(screen.getByText(displayName))
+  await waitFor(() => screen.getByPlaceholderText('Found on your insurance card'))
+  await userEvent.type(screen.getByPlaceholderText('Found on your insurance card'), 'TEST-123')
   await userEvent.click(screen.getByText('Continue'))
 }
 
@@ -299,6 +301,8 @@ describe('SchedulingPage — step 4: provider results', () => {
     await userEvent.click(screen.getByText('Select a plan…'))
     await waitFor(() => screen.getByText('Aetna'))
     await userEvent.click(screen.getByText('Aetna'))
+    await waitFor(() => screen.getByPlaceholderText('Found on your insurance card'))
+    await userEvent.type(screen.getByPlaceholderText('Found on your insurance card'), 'TEST-123')
     await userEvent.click(screen.getByText('Continue'))
     await waitFor(() => screen.getByText('Find providers'))
     await userEvent.click(screen.getByText('Find providers'))

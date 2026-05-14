@@ -7,7 +7,7 @@ const envSchema = z.object({
 
   // When true, POST /v1/patients and POST /v1/appointments use mock handlers
   // instead of the real partner API. Read endpoints always hit the real API.
-  USE_MOCK_API: z
+  MOCK_BOOKINGS: z
     .string()
     .transform((v: string) => v === 'true' || v === '1')
     .default(true),

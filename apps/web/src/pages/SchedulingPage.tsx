@@ -35,7 +35,7 @@ const LOCATION_TYPES = [
   { value: 'in_person', label: 'In-person' },
 ]
 
-const US_STATES = ['CA', 'CO', 'FL', 'IL', 'MA', 'NY', 'OR', 'PA', 'TX', 'WA']
+const US_STATES = ['CA', 'MB', 'TN']
 
 const GENDER_OPTIONS = [
   'Female',
@@ -216,6 +216,7 @@ export function SchedulingPage() {
   // Step 2
   const [insurances, setInsurances] = useState<Insurance[]>([])
   const [selectedInsurance, setSelectedInsurance] = useState<Insurance | null>(null)
+  const [subscriberId, setSubscriberId] = useState('')
   const [insuranceQuery, setInsuranceQuery] = useState('')
   const [insuranceOpen, setInsuranceOpen] = useState(false)
   const insuranceRef = useRef<HTMLDivElement>(null)
@@ -370,7 +371,16 @@ export function SchedulingPage() {
     setError(null)
     setBooking(true)
     try {
-      const patient = await api.createPatient(patientData)
+      const patient = await api.createPatient({
+        ...patientData,
+        location: state,
+        care_types: [careType],
+        is_eap_referral: false,
+        ...(selectedInsurance && {
+          insurance_id: selectedInsurance.id,
+          subscriber_id: subscriberId,
+        }),
+      })
       const appt = await api.bookAppointment({
         patient_id: patient.patient_id,
         provider_id: selectedProvider.id,
@@ -622,11 +632,22 @@ export function SchedulingPage() {
                   </div>
                 )}
               </div>
+              {selectedInsurance && (
+                <label style={{ marginTop: '0.75rem' }}>
+                  Member / subscriber ID
+                  <input
+                    type="text"
+                    placeholder="Found on your insurance card"
+                    value={subscriberId}
+                    onChange={(e) => setSubscriberId(e.target.value)}
+                  />
+                </label>
+              )}
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className="btn-primary"
-                  disabled={!selectedInsurance}
+                  disabled={!selectedInsurance || !subscriberId.trim()}
                   onClick={() => handleSelectInsurance(selectedInsurance)}
                 >
                   Continue
@@ -1027,7 +1048,7 @@ export function SchedulingPage() {
       )}
 
       {/* Step 7 — Confirmed */}
-      {step === 'confirmed' && appointment && (
+      {step === 'confirmed' && appointment && selectedSlot && (
         <div className="card">
           <div className="confirmation">
             <div className="checkmark" />
@@ -1037,11 +1058,14 @@ export function SchedulingPage() {
             </p>
             <div className="appt-details">
               <p>
+                <strong>Provider:</strong> {selectedProvider?.first_name} {selectedProvider?.last_name}
+              </p>
+              <p>
                 <strong>Confirmation ID:</strong> {appointment.appointment_id}
               </p>
               <p>
                 <strong>Date:</strong>{' '}
-                {new Date(appointment.appointment_slot).toLocaleString(undefined, {
+                {new Date(selectedSlot.start_time_iso).toLocaleString(undefined, {
                   weekday: 'long',
                   month: 'long',
                   day: 'numeric',
@@ -1050,11 +1074,11 @@ export function SchedulingPage() {
                 })}
               </p>
               <p>
-                <strong>Type:</strong> {appointment.appointment_details.appointment_type}
+                <strong>Type:</strong> {careType}
               </p>
               <p>
                 <strong>Format:</strong>{' '}
-                {appointment.appointment_details.is_virtual ? 'Virtual' : 'In-person'}
+                {selectedSlot.location === 'telemedicine' ? 'Virtual' : 'In-person'}
               </p>
               <p>
                 <strong>Status:</strong> {appointment.status}
