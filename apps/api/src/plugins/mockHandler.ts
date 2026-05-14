@@ -13,6 +13,22 @@ function loadFixture<T>(name: string): T {
 }
 
 export const mockHandlers = {
+  getInsurances() {
+    return loadFixture('insurances')
+  },
+
+  searchProviders() {
+    return loadFixture('providers')
+  },
+
+  getSlots() {
+    return loadFixture('slots')
+  },
+
+  getProvider(_uuid: string) {
+    return loadFixture('provider-detail')
+  },
+
   createPatient(data: PatientCreateBody) {
     return {
       patient_id: `mock-patient-${Date.now()}`,

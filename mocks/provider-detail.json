@@ -1,0 +1,17 @@
+{
+  "id": "mock-provider-001",
+  "first_name": "Sarah",
+  "last_name": "Chen",
+  "profile_image_url": null,
+  "profile_bio": "I specialize in anxiety, depression, and life transitions using evidence-based approaches including CBT and mindfulness.",
+  "profile_approach": "I use a collaborative, client-centered approach drawing from CBT, mindfulness-based therapy, and solution-focused techniques. I believe in creating a safe space where clients can explore challenges and develop practical coping strategies.",
+  "profile_areas_of_focus": "I work with adults experiencing anxiety, depression, life transitions, and relationship issues. I have particular experience supporting clients through career changes, grief, and major life adjustments.",
+  "profile_journey": "My path to therapy began with my own experience navigating major life transitions. That journey inspired me to help others find clarity and resilience during challenging times.",
+  "profile_goals_for_clients": "My goal is to help each client build insight, develop practical skills, and find their own path forward. I measure success by the changes clients experience in their daily lives.",
+  "profile_first_session": "In our first session, we will explore what brings you to therapy, your goals, and what you hope to achieve. I will explain my approach and we will determine if we are a good fit together.",
+  "genders": ["Female"],
+  "races": ["Asian"],
+  "insurances": ["Aetna", "Cigna", "Blue Cross Blue Shield"],
+  "sees": ["individuals", "adults"],
+  "session_formats": ["telemedicine"]
+}

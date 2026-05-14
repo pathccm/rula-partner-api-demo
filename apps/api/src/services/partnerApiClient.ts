@@ -4,7 +4,7 @@ import { getPartnerToken } from './tokenService.js'
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getPartnerToken()
-  const baseUrl = config.PARTNER_API_BASE_URL
+  const baseUrl = config.PARTNER_API_BASE_URL!
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), config.PARTNER_API_TIMEOUT_MS)

@@ -1,0 +1,9 @@
+{
+  "insurances": [
+    { "id": "mock-ins-aetna", "carrier_display_name": "Aetna", "network_name": "aetna", "state": "CA" },
+    { "id": "mock-ins-cigna", "carrier_display_name": "Cigna", "network_name": "cigna", "state": "CA" },
+    { "id": "mock-ins-bcbs", "carrier_display_name": "Blue Cross Blue Shield", "network_name": "bcbs", "state": "CA" },
+    { "id": "mock-ins-united", "carrier_display_name": "United Healthcare", "network_name": "united", "state": "CA" },
+    { "id": "mock-ins-optum", "carrier_display_name": "Optum", "network_name": "optum", "state": "CA" }
+  ]
+}

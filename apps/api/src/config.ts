@@ -5,18 +5,20 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 
-  // When true, POST /v1/patients and POST /v1/appointments use mock handlers
-  // instead of the real partner API. Read endpoints always hit the real API.
+  // When true, write endpoints (patient creation, booking) use mock handlers.
+  // When false, state MB uses the real partner API; all other states still mock.
+  // When credentials are absent, all endpoints use mocks regardless of this setting.
   MOCK_BOOKINGS: z
     .string()
     .transform((v: string) => v === 'true' || v === '1')
     .default(true),
 
-  PARTNER_API_BASE_URL: z.url(),
-  PARTNER_API_AUDIENCE: z.url(),
-  AUTH0_TOKEN_URL: z.url(),
-  PARTNER_API_CLIENT_ID: z.string().min(1),
-  PARTNER_API_CLIENT_SECRET: z.string().min(1),
+  // Credentials are optional — when absent the app runs in full mock mode.
+  PARTNER_API_BASE_URL: z.url().optional(),
+  PARTNER_API_AUDIENCE: z.url().optional(),
+  AUTH0_TOKEN_URL: z.url().optional(),
+  PARTNER_API_CLIENT_ID: z.string().min(1).optional(),
+  PARTNER_API_CLIENT_SECRET: z.string().min(1).optional(),
 
   // Shared API key for protecting BFF routes. When set, all /v1/* requests must
   // include a matching x-api-key header. When unset, enforcement is skipped (local dev).
@@ -29,3 +31,11 @@ const envSchema = z.object({
 })
 
 export const config = envSchema.parse(process.env)
+
+export const hasCredentials = Boolean(
+  config.PARTNER_API_BASE_URL &&
+    config.PARTNER_API_AUDIENCE &&
+    config.AUTH0_TOKEN_URL &&
+    config.PARTNER_API_CLIENT_ID &&
+    config.PARTNER_API_CLIENT_SECRET,
+)
