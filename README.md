@@ -4,6 +4,38 @@
 
 A reference implementation showing how a partner can integrate with Rula's Partner Scheduling API to search for providers, retrieve available slots, and book appointments.
 
+---
+
+## Legal & Security
+
+### Non-Production Status
+
+The prototypes, demos, and sample code in this repository are for **illustrative purposes only**. They are not intended for use in production environments without significant independent testing and security review.
+
+### No PHI/PII
+
+This repository does **not contain Protected Health Information (PHI) or Personally Identifiable Information (PII)**. All demo data is synthetic. You are **strictly prohibited** from uploading or testing any real patient data against these public resources.
+
+### No Warranty
+
+Rula provides these materials on an **"as-is" basis** with no guarantees regarding accuracy, completeness, or availability. See [DISCLAIMER.md](DISCLAIMER.md) for full terms.
+
+### API Evolution
+
+The OpenAPI specifications are subject to change. Rula reserves the right to modify or deprecate endpoints per the Partner Agreement. This repository may not reflect the latest production API.
+
+### Not a Contract
+
+Use of this repository does not constitute a formal partnership or SLA. Access to production APIs requires a signed agreement and credentials issued by Rula.
+
+### Support
+
+For production support, contact your Rula Partner Manager. **Do not open GitHub Issues for production API support.** For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+
+### Trademark
+
+The Rula name and logo are trademarks of Rula Health, Inc. and are not licensed under the Apache 2.0 license that governs this code. Do not create repositories or applications that imply official Rula affiliation without written permission.
+
 The demo runs fully without credentials using built-in fixture data. To test against the live API, see [Getting credentials](#getting-credentials).
 
 ---
