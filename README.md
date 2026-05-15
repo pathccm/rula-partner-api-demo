@@ -4,92 +4,16 @@
 
 A reference implementation showing how a partner can integrate with Rula's Partner Scheduling API to search for providers, retrieve available slots, and book appointments.
 
+The demo runs fully without credentials using built-in fixture data. To test against the live API, see [Getting credentials](#getting-credentials).
+
 ---
 
 ## What this demos
-
-This monorepo shows a complete end-to-end integration with the [Rula Partner Scheduling API](openapi/partner-scheduling.yaml):
 
 1. **Provider search** - filter by state, insurance carrier, care type, and session format
 2. **Provider profiles** - view bio, approach, focus areas, accepted insurance, and more
 3. **Slot availability** - retrieve open appointment slots for a provider
 4. **Appointment booking** - create a patient record and book an appointment
-5. **Partial mock mode** - read endpoints (insurances, providers, slots) always hit the real partner API; write endpoints (patient creation, booking) are mocked via `MOCK_BOOKINGS=true`
-
----
-
-## Architecture
-
-```
-rula-partner-api-demo/
-├── apps/
-│   ├── web/          React 19 + Vite SPA (port 3000 in dev)
-│   └── api/          Fastify BFF / proxy server (port 4004)
-├── packages/
-│   ├── api-client/   Generated OpenAPI client types
-│   └── shared/       Shared TypeScript types
-├── openapi/
-│   └── partner-scheduling.yaml   Partner API spec (v0.23.2)
-└── mocks/            JSON fixtures for mocked write endpoints
-```
-
-```
-Browser (port 3000)
-    │
-    ▼
-apps/web  ──── /v1/* proxy ────►  apps/api (port 4004)
-                                        │
-                              ┌─────────┴─────────┐
-                              │ reads              │ writes
-                              ▼                    ▼
-                     PARTNER_API_BASE_URL   MOCK_BOOKINGS=true?
-                      + Auth0 M2M token     mocks/ or live API
-```
-
-In production, `apps/api` serves `apps/web/dist/` as static files - both apps run on the same origin.
-
----
-
-## Environment variables
-
-### `apps/api/.env`
-
-Copy `apps/api/.env.example` and fill in the values.
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `PARTNER_API_BASE_URL` | Yes | - | Live partner API base URL |
-| `PARTNER_API_AUDIENCE` | Yes | - | OAuth2 audience for the partner API |
-| `AUTH0_TOKEN_URL` | Yes | - | Auth0 `/oauth/token` endpoint for M2M tokens |
-| `PARTNER_API_CLIENT_ID` | Yes | - | OAuth2 client ID |
-| `PARTNER_API_CLIENT_SECRET` | Yes | - | OAuth2 client secret |
-| `MOCK_BOOKINGS` | No | `true` | When `true`, mocks patient creation and booking |
-| `APP_BASE_URL` | No | `http://localhost:3000` | Allowed CORS origin |
-| `PORT` | No | `4004` | API server port |
-| `NODE_ENV` | No | `development` | `development` \| `production` \| `test` |
-| `LOG_LEVEL` | No | `info` | `trace` \| `debug` \| `info` \| `warn` \| `error` \| `fatal` |
-
-### `apps/web/.env`
-
-Copy `apps/web/.env.example`. Only needed when running the Vite dev server separately.
-
-| Variable | Required | Description |
-|---|---|---|
-| `VITE_API_BASE_URL` | No | URL of `apps/api`. Defaults to `http://localhost:4004` via the Vite proxy. Omit when the frontend is served by the API. |
-
----
-
-## Getting credentials
-
-To use this demo against the live Rula Partner Scheduling API, you need OAuth2 client credentials issued by Rula:
-
-- `PARTNER_API_CLIENT_ID`
-- `PARTNER_API_CLIENT_SECRET`
-- `PARTNER_API_BASE_URL`
-- `PARTNER_API_AUDIENCE`
-- `AUTH0_TOKEN_URL`
-
-Contact your Rula partner representative or email [epd-partnerships-deals-eng@rula.com](mailto:epd-partnerships-deals-eng@rula.com) to request credentials. Until then, the demo runs fully in mock mode (`MOCK_BOOKINGS=true`) without any credentials.
 
 ---
 
@@ -98,71 +22,73 @@ Contact your Rula partner representative or email [epd-partnerships-deals-eng@ru
 **Prerequisites**: Node.js ≥ 20, pnpm ≥ 10
 
 ```bash
-# 1. Clone
 git clone https://github.com/pathccm/rula-partner-api-demo.git
 cd rula-partner-api-demo
-
-# 2. Install all workspace dependencies
 pnpm install
-
-# 3. Configure the API
-cp apps/api/.env.example apps/api/.env
-# Fill in PARTNER_API_BASE_URL, PARTNER_API_AUDIENCE, AUTH0_TOKEN_URL,
-# PARTNER_API_CLIENT_ID, PARTNER_API_CLIENT_SECRET
-
-# 4. Start both apps
 pnpm dev
-# apps/api starts on http://localhost:4004
-# apps/web starts on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000). No credentials needed — all data is mocked by default.
+
+To use the live partner API, copy `apps/api/.env.example` to `apps/api/.env`, fill in your credentials, then run `pnpm dev`.
 
 ---
 
-## Mock vs live booking
+## Getting credentials
 
-Read endpoints (`GET /v1/insurances`, `POST /v1/providers/search`, `GET /v1/providers/slots`, `GET /v1/providers/:uuid`) always call the real partner API and always require valid credentials.
+Contact your Rula partner representative or email [epd-partnerships-deals-eng@rula.com](mailto:epd-partnerships-deals-eng@rula.com) to request OAuth2 credentials (`PARTNER_API_CLIENT_ID`, `PARTNER_API_CLIENT_SECRET`, `PARTNER_API_BASE_URL`, `PARTNER_API_AUDIENCE`, `AUTH0_TOKEN_URL`).
 
-Write endpoints (`POST /v1/patients`, `POST /v1/appointments`) follow this logic:
+---
 
-| `MOCK_BOOKINGS` | State | Patient creation | Appointment booking |
-|---|---|---|---|
-| `true` (default) | any | Returns a mock patient ID | Returns a mock appointment after a 2s delay |
-| `false` | `MB` | Calls live partner API | Calls live partner API |
-| `false` | any other | Returns a mock patient ID | Returns a mock appointment after a 2s delay |
+## Mock vs live mode
 
-`MB` is Rula's test state. Set `MOCK_BOOKINGS=false` and select `MB` to test real end-to-end booking.
+When credentials are absent, all endpoints return fixture data from `mocks/`. When credentials are set, read endpoints always call the live API. Write endpoints follow this logic:
+
+- `MOCK_BOOKINGS=true` (default) — patient creation and booking always return mock data
+- `MOCK_BOOKINGS=false`, state `MB` — calls the live partner API (MB is Rula's test state)
+- `MOCK_BOOKINGS=false`, any other state — still returns mock data
+
+---
+
+## Environment variables
+
+All variables are optional. Omitting credentials runs the demo in full mock mode.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PARTNER_API_BASE_URL` | - | Live partner API base URL |
+| `PARTNER_API_AUDIENCE` | - | OAuth2 audience |
+| `AUTH0_TOKEN_URL` | - | Auth0 `/oauth/token` endpoint |
+| `PARTNER_API_CLIENT_ID` | - | OAuth2 client ID |
+| `PARTNER_API_CLIENT_SECRET` | - | OAuth2 client secret |
+| `MOCK_BOOKINGS` | `true` | Mock patient creation and booking |
+| `APP_BASE_URL` | `http://localhost:3000` | Allowed CORS origin |
+| `API_KEY` | - | When set, requires `x-api-key` header on all `/v1/*` requests |
+| `PORT` | `4004` | API server port |
+| `NODE_ENV` | `development` | `development` \| `production` \| `test` |
+| `LOG_LEVEL` | `info` | `trace` \| `debug` \| `info` \| `warn` \| `error` \| `fatal` |
+
+`apps/web` has one optional variable: `VITE_API_BASE_URL` (defaults to `http://localhost:4004` via the Vite proxy; only needed when running the frontend separately).
 
 ---
 
 ## Deployment
 
-### Deploy to Heroku
-
 **Prerequisites**: [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed and logged in.
 
 ```bash
-# 1. Create a new Heroku app
+# Create app
 heroku create your-app-name
 
-# 2. Set environment variables from your local .env file
+# Set env vars (from local .env, or skip for full mock mode)
 heroku config:set $(grep -v '^#' apps/api/.env | grep -v '^$' | xargs) \
   APP_BASE_URL=https://your-app-name.herokuapp.com \
   NODE_ENV=production \
   -a your-app-name
 
-# 3. Deploy
+# Deploy
 git push heroku main
 ```
-
-**Recommended variables:**
-
-| Variable | Value | Description |
-|---|---|---|
-| `MOCK_BOOKINGS` | `true` | Mocks write endpoints - no real records created |
-| `API_KEY` | random secret | Requires `x-api-key` header on all `/v1/*` requests |
-| `NODE_ENV` | `production` | Disables pretty-print logging |
 
 `apps/api` serves the built `apps/web/dist/` as static files - no separate frontend deployment needed. Health check: `GET /health`.
 
@@ -170,13 +96,12 @@ git push heroku main
 
 ## Demo walkthrough
 
-1. Open [http://localhost:3000](http://localhost:3000)
-2. Select a **care type** (Therapy or Psychiatry / Medication management), **session format** (Virtual or In-person), and **state**
-3. Select your **insurance** plan (or pay out of pocket)
-4. Browse **providers** - click **About** to view a full profile, **View slots** to continue
-5. Select an **appointment slot**
-6. Enter **patient information** and click **Confirm appointment**
-7. View the **booking confirmation** and appointment status
+1. Select a **care type**, **session format**, and **state**
+2. Select your **insurance** plan (or pay out of pocket)
+3. Browse **providers** - click **About** to view a full profile, **View slots** to continue
+4. Select an **appointment slot**
+5. Enter **patient information** and click **Confirm appointment**
+6. View the **booking confirmation** and appointment status
 
 ---
 
@@ -184,7 +109,7 @@ git push heroku main
 
 - Demo only - not production-ready
 - No session persistence - state resets on page refresh
-- Mock patient/appointment data uses generated IDs and will not appear in the live partner system
+- Mock data uses generated IDs and will not appear in the live partner system
 
 ---
 
@@ -192,8 +117,7 @@ git push heroku main
 
 > Tested against partner-scheduling-api spec **v0.23.5**
 
-The committed spec is at [`openapi/partner-scheduling.yaml`](openapi/partner-scheduling.yaml).
-All proxy route request/response types are generated from it - no manual `any` casts.
+The committed spec is at [`openapi/partner-scheduling.yaml`](openapi/partner-scheduling.yaml). All proxy route request/response types are generated from it - no manual `any` casts.
 
 View it interactively: paste the file into [editor.swagger.io](https://editor.swagger.io) or [redocly.com/redoc](https://redocly.com/redoc/).
 

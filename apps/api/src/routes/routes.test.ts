@@ -6,6 +6,7 @@ const { mockConfig } = vi.hoisted(() => {
     MOCK_BOOKINGS: true,
     AUTH0_TOKEN_URL: 'https://test.auth0.com/oauth/token',
     PARTNER_API_BASE_URL: 'https://api.test.example.com',
+    PARTNER_API_AUDIENCE: 'https://api.test.example.com',
     PARTNER_API_CLIENT_ID: 'test-client-id',
     PARTNER_API_CLIENT_SECRET: 'test-client-secret',
     PARTNER_API_TIMEOUT_MS: 10_000,
@@ -17,7 +18,7 @@ const { mockConfig } = vi.hoisted(() => {
   return { mockConfig }
 })
 
-vi.mock('../config.js', () => ({ config: mockConfig }))
+vi.mock('../config.js', () => ({ config: mockConfig, hasCredentials: true }))
 
 vi.mock('../services/partnerApiClient.js', () => ({
   partnerApiClient: {

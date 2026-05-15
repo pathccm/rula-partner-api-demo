@@ -1,0 +1,28 @@
+{
+  "slots": [
+    {
+      "provider_id": "mock-provider-001",
+      "start_time_iso": "2030-06-02T16:00:00Z",
+      "duration_mins": 50,
+      "location": "telemedicine"
+    },
+    {
+      "provider_id": "mock-provider-001",
+      "start_time_iso": "2030-06-03T10:00:00Z",
+      "duration_mins": 50,
+      "location": "telemedicine"
+    },
+    {
+      "provider_id": "mock-provider-001",
+      "start_time_iso": "2030-06-04T14:00:00Z",
+      "duration_mins": 50,
+      "location": "telemedicine"
+    },
+    {
+      "provider_id": "mock-provider-001",
+      "start_time_iso": "2030-06-05T09:00:00Z",
+      "duration_mins": 50,
+      "location": "in_person"
+    }
+  ]
+}
