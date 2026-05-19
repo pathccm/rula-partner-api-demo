@@ -74,11 +74,10 @@ Contact your Rula partner representative or email [epd-partnerships-deals-eng@ru
 
 ## Mock vs live mode
 
-When credentials are absent, all endpoints return fixture data from `mocks/`. When credentials are set, read endpoints always call the live API. Write endpoints follow this logic:
-
-- `MOCK_BOOKINGS=true` (default) — patient creation and booking always return mock data
-- `MOCK_BOOKINGS=false`, state `MB` — calls the live partner API (MB is Rula's test state)
-- `MOCK_BOOKINGS=false`, any other state — still returns mock data
+- `USE_MOCK_API=true` (default) — all endpoints return fixture data from `mocks/`, no credentials needed
+- `USE_MOCK_API=false`, credentials present — read and write endpoints call the live partner API
+- `USE_MOCK_API=false`, no credentials — all endpoints fall back to fixture data
+- `USE_MOCK_API=false`, state `MB` — write endpoints call the live partner API (MB is Rula's test state); other states still mock
 
 ---
 
@@ -93,7 +92,7 @@ All variables are optional. Omitting credentials runs the demo in full mock mode
 | `AUTH0_TOKEN_URL` | - | Auth0 `/oauth/token` endpoint |
 | `PARTNER_API_CLIENT_ID` | - | OAuth2 client ID |
 | `PARTNER_API_CLIENT_SECRET` | - | OAuth2 client secret |
-| `MOCK_BOOKINGS` | `true` | Mock patient creation and booking |
+| `USE_MOCK_API` | `true` | When `true`, all endpoints return fixture data regardless of credentials |
 | `APP_BASE_URL` | `http://localhost:3000` | Allowed CORS origin |
 | `API_KEY` | - | When set, requires `x-api-key` header on all `/v1/*` requests |
 | `PORT` | `4004` | API server port |
