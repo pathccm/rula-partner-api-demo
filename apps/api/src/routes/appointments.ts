@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { config } from '../config.js'
+import { config, hasCredentials } from '../config.js'
 import { mockHandlers } from '../plugins/mockHandler.js'
 import { partnerApiClient } from '../services/partnerApiClient.js'
 import type { AppointmentsCreateBody, AppointmentsCreateResponse } from '../types.js'
@@ -7,7 +7,11 @@ import type { AppointmentsCreateBody, AppointmentsCreateResponse } from '../type
 export async function appointmentsRoutes(app: FastifyInstance) {
   app.post('/v1/appointments', async (request) => {
     const body = request.body as AppointmentsCreateBody
-    if (config.USE_MOCK_API || body.appointment_details.two_letter_state !== 'MB') {
+    if (
+      config.USE_MOCK_API ||
+      !hasCredentials ||
+      body.appointment_details.two_letter_state !== 'MB'
+    ) {
       await new Promise((resolve) => setTimeout(resolve, 2000))
       return mockHandlers.createAppointment(body)
     }

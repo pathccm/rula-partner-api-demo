@@ -5,8 +5,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 
-  // When true, write endpoints (patient creation, booking) use mock handlers.
-  // When false, state MB uses the real partner API; all other states still mock.
+  // When true, all partner API routes use mock handlers.
+  // When false and credentials are present, routes call the live partner API.
   // When credentials are absent, all endpoints use mocks regardless of this setting.
   USE_MOCK_API: z
     .string()
