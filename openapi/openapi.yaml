@@ -1,0 +1,1787 @@
+openapi: 3.1.0
+info:
+  title: Rula Partner API
+  version: 0.23.5
+  description: >
+    Rula's API for partners. This API is currently a WIP and may change at any time.
+
+    Updates:
+    v0.23.5
+      Changelog:
+        + Changed POST /v1/patients response for identification and insurance validation failures from 502 to 422
+
+    v0.23.4
+      Changelog:
+        + Additional clarification on start_time_range description on GET /v1/providers/slots
+        + GET /v1/providers/slots no longer allows a start in start_time_range outside of bookable range
+        + I.E. less than 25 hours from now
+
+    v0.23.3
+      Changelog:
+        + Fixed is_eap_referral conditional validation to allow true when is_self_pay is not provided
+        + Added custom error messages for if conditional failures for PatientCreateRequest
+
+    v0.23.2
+      Changelog:
+        + Clarified start_time_range description on GET /v1/providers/slots
+        + Improved descriptions across multiple fields for clarity
+        + Added minItems/maxItems: 2 constraint to start_time_range on GET /v1/providers/slots
+
+    v0.23.1
+      Changelog:
+        + Removed request-start-time header parameter from spec (now handled at the gateway level)
+
+    v0.23.0
+      Changelog:
+        + Added optional is_self_pay boolean field to PatientCreateRequest (default: false)
+        + insurance_id is now only required when is_self_pay is false
+        + subscriber_id is now only required when is_eap_referral is false and is_self_pay is false
+        + is_eap_referral must be false when is_self_pay is true
+
+    v0.22.0
+      Changelog:
+        + Added PUT /v1/appointments/{uuid}/cancel endpoint to cancel an appointment
+
+    v0.21.1
+      Changelog:
+        + Added request-start-time as an accepted optional header on all endpoints
+
+    v0.21.0
+      Changelog:
+        + Added GET /v1/appointments/{uuid} endpoint to retrieve a single appointment
+        + Extracted shared Appointment schema used by PatientAppointmentsResponse and AppointmentShowResponse
+
+    v0.20.1
+      Changelog:
+        + Add upcoming_insurance as an optional parameter in employee_assistance_program
+
+    v0.20.0
+      Changelog:
+        + Clarified that subscriber_id is required for POST /v1/patients when is_eap_referral is false
+        + Added conditional schema validation to enforce subscriber_id when is_eap_referral is false
+
+    v0.19.0
+      Changelog:
+        + The email and phone_number of a minor patient must now match their guardian's for POST /v1/patients
+        + Updated description of email and phone_number fields for POST /v1/patients to reflect this
+
+    v0.18.0
+      Changelog:
+        + Added willing_to_see to GET /v1/providers/{uuid} response
+        + Standardized willing_to_see enum values to short lowercase keys across all endpoints
+          (e.g., "Minors (13-17)" → "minors", "Children (5-7)" → "children")
+
+    v0.17.0
+      Changelog:
+        + Added environment-specific OAuth scopes (partner_api:production, partner_api:staging).
+          All tokens must now include the scope matching the target environment in addition to
+          the endpoint's functional scope(s).
+
+    v0.16.0
+      Changelog:
+        + Renamed carrier_uuid to id in GET /v1/insurances response
+
+    v0.15.1
+      Changelog:
+        + Adds traced_id to BadGatewayError
+
+    v0.15.0
+      Changelog:
+        + Updated GET /v1/insurances endpoint. Added carrier_uuid to response and optional state filter parameter.
+        + Updated POST /v1/patients endpoint to take insurance_id instead of insurance.
+
+    v0.14.5
+      Changelog:
+        + Added active_states to GET /v1/providers/{uuid} response
+
+    v0.14.4
+      Changelog:
+        + Explicitly add minLength: 1 to required string fields in POST /v1/patients
+        + Add pattern for location and address.state for POST /v1/patients
+
+    v0.14.3
+      Changelog:
+        + Malformed JSON request bodies now return 400 instead of 500
+
+    v0.14.2
+      Changelog:
+        + Added trace_id to InternalServerError (500) error responses
+
+    v0.14.1
+      Changelog:
+        - Removed deprecated specialty enum values: Adolescents/Teens, Children, Dual Diagnosis, Emotional Disturbance, Life Coaching, Marital/Pre-marital, Sexual Orientation, Teen Violence
+        - Removed deprecated modality enum values: Eclectic, Integrative
+
+    v0.14.0
+      Changelog:
+        + Made first_name, last_name, email, and phone_number required fields within the guardian object on POST /v1/patients
+
+    v0.13.1
+      Changelog:
+        + Updated descriptions for /v1/providers/search availability fields
+        + Updated /v1/providers/search to return 422 with proper message when conflicting availability parameters are provided.
+
+    v0.13.0
+      Changelog:
+        + Added RequestValidationError as a possible schema for 422 response on POST /v1/patients (in addition to UnprocessableEntityError)
+
+    v0.12.0
+      Changelog:
+        + Added 404 as a possible response for GET /v1/patients/{uuid}/appointments (Patient not found)
+        + Added 401 as a possible response for GET /v1/patients/{uuid}/appointments (Unauthorized)
+
+    v0.11.0
+      Changelog:
+        + Added 422 as a possible response for POST /v1/patients (Unprocessable Entity for business logic validation failures)
+        + Added 502 as a possible response for POST /v1/patients (Bad Gateway for external service failures)
+        + Removed 403 as a possible response for POST /v1/patients (replaced by 422 for validation failures)
+        + Removed unused error schema for ForbiddenError
+
+    v0.10.0
+      Changelog:
+        + Added 422 Unprocessable Entity as a possible response for all endpoints with request validation
+
+    v0.9.0
+      Changelog:
+        + Added 404, 406, 409, and 422 as possible responses for appointmentsCreate
+
+    v0.8.0
+      Changelog:
+        + Made location_type a required parameter for GET /v1/providers/slots
+        + Added uniqueItems constraint to location_type parameter for GET /v1/providers/slots
+        + Added minItems: 1 constraint to location_type parameter for GET /v1/providers/slots
+        + Added style: form and explode: true to location_type parameter for GET /v1/providers/slots to explicitly specify repeated query parameter format (location_type=a&location_type=b)
+
+    v0.7.0
+      Changelog:
+        + Added 403 as a possible response for patientCreate
+
+    v.0.6.1
+      Changelog:
+        + Adds a default value for the care_category field in ProvidersSearchRequest
+
+    v0.6.0
+      Changelog:
+        + Corrected spelling of therapy_type as a required param for PatientAppointmentsResponse
+
+    v0.5.4
+      Changelog:
+        + Updated the staging URL to match the actual deployed staging URL
+
+    v0.5.3
+      Changelog:
+        + Commented out the production and local servers to work with downstream CI/CD pipeline. URLs are still in process of being generated/confirmed.
+
+    v0.5.2
+      Changelog:
+        + Adds error responses to endpoints, including 400 Bad Request and 500 Internal Server Error.
+
+    v0.5.1
+      Changelog:
+        + Added coverage_type to ProvidersSearchRequest
+
+    v0.5.0
+      Updated operational version for partners.
+      Rula will adopt the following versioning until v1.0:
+        + Breaking changes (ie: Adding a required field to a request) will be considered a minor version bump (ie: 0.5.0 -> 0.6.0)
+          + During development, we will do our best to limit these and provide adequate notification
+        + Non-breaking changes (ie: adding a field to a response, or adding an optional field to a request) will be considered a patch version bump (ie: 0.5.0 -> 0.5.1)
+      Planned changes:
+        + Server URLs are still proposed, actual URLs will be known once infra is in place, at which time they will be replaced with the full URLs.
+        + Error codes and responses will be added as dependent service requirements are translated
+      Changelog:
+        + Removed partner_name as a parameter for PatientCreateRequest
+        + Added a new required parameter care_types to PatientCreateRequest
+        + Updated employee_assistance_program to require authorization_number for PatientCreateRequest
+
+    v0.4.0
+      Initial operational version for partners.
+      This is the first managed release that will follow semver.
+      Rula will adopt the following versioning until v1.0:
+        + Breaking changes (ie: Adding a required field to a request) will be considered a minor version bump (ie: 0.4.0 -> 0.5.0)
+          + During development, we will do our best to limit these and provide adequate notification
+        + Non-breaking changes (ie: adding a field to a response, or adding an optional field to a request) will be considered a patch version bump (ie: 0.4.0 -> 0.4.1)
+      Planned changes:
+        + Server URLs are still proposed, actual URLs will be known once infra is in place, at which time they will be replaced with the full URLs.
+        + Error codes and responses will be added as dependent service requirements are translated
+      Changelog:
+        + Changed API spec management - This will result in a significantly different structure/layout than previous versions, and additional changes that may not be noted below
+        + Added the live production OAuth2 security scheme information
+        + Added providersSlots
+        + Removed appointmentsShow (not slated for initial release)
+        + Removed appointmentUpdate (not slated for initial release)
+        + Removed appointmentCancel (not slated for initial release)
+        + Removed eventNotificationShow (not slated for initial release)
+        + Removed patientShow (not slated for initial release)
+        + Removed aptientSurveysIndex (not slated for initial release)
+
+servers:
+  # - url: https://api.prod.rula.com/edge/partner-scheduling-api-prod
+  #   description: The proposed production API URL
+  #   x-internal: false
+  - url: https://api.prod.rula.com/edge/partner-scheduling-api-server-staging
+    description: The staging API URL
+    x-internal: false
+  # - url: http://localhost:3000
+  #   description: Local development URL
+  #   x-internal: true
+tags: []
+
+paths:
+  /v1/insurances:
+    get:
+      operationId: insurancesIndex
+      summary: List of insurances Rula accepts
+      description: >
+        Returns a list of insurance carriers accepted by Rula, optionally filtered by state.
+        Each insurance entry includes the carrier display name, network name, state, coverage type,
+        and a unique id that can be used to reference the carrier in other API calls.
+      security:
+        - auth0:
+            - partner_api:insurances:read
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[A-Z]{2}$
+          in: query
+          name: state
+          required: false
+          description: >
+            Two-letter state code (e.g. CA, NY) to filter insurances by state.
+            If omitted, insurances for all states are returned.
+      responses:
+        "200":
+          $ref: "#/components/responses/InsurancesIndexResponse"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/providers/{uuid}:
+    get:
+      operationId: providersShow
+      summary: Information for a specific provider.
+      security:
+        - auth0:
+            - partner_api:providers:read
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/Uuid"
+          example: 9c823227-dbe1-408c-9e71-0685817e3410
+          in: path
+          name: uuid
+          required: true
+          description: The uuid of the provider to retrieve
+      responses:
+        "200":
+          $ref: "#/components/responses/ProvidersShowResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/providers/search:
+    post:
+      operationId: providersSearch
+      summary: Search for providers matching criteria, returns summary information.
+      security:
+        - auth0:
+            - partner_api:providers:read
+      requestBody:
+        $ref: "#/components/requestBodies/ProvidersSearchRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/ProvidersSearchResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/providers/slots:
+    get:
+      operationId: providersSlots
+      summary: Available slots for a specific provider.
+      security:
+        - auth0:
+            - partner_api:providers:read
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/Uuid"
+          in: query
+          name: provider_uuid
+          required: true
+          description: The unique Rula-provided identifier for the provider.
+        - schema:
+            type: string
+            pattern: ^[A-Z]{2}$
+            maxLength: 2
+          in: query
+          name: two_letter_state
+          required: true
+          description: Two-letter state code (e.g., "CA" for California).
+        - schema:
+            type: array
+            minItems: 2
+            maxItems: 2
+            items:
+              type: string
+              format: date-time
+          in: query
+          name: start_time_range
+          required: false
+          description: A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced, but start cannot be less than 25 hours from now, as this is outside of the bookable range.
+        - schema:
+            type: array
+            uniqueItems: true
+            minItems: 1
+            items:
+              type: string
+              enum:
+                - in_person
+                - telemedicine
+          in: query
+          name: location_type
+          required: true
+          style: form
+          explode: true
+          description: Array of location types to filter appointment slots by (in-person vs virtual).
+      responses:
+        "200":
+          $ref: "#/components/responses/ProvidersSlotsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/patients:
+    post:
+      operationId: patientCreate
+      summary: Creates a patient for Rula
+      security:
+        - auth0:
+            - partner_api:patients:create
+      description: Creates a patient for Rula
+      requestBody:
+        $ref: "#/components/requestBodies/PatientCreateRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/PatientCreateResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "422":
+          description: Unprocessable Entity - Business logic validation failure (e.g., EAP with psychiatry not supported, patient is a minor, patient could not be created for some other reason)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RequestValidationError"
+                  - $ref: "#/components/schemas/UnprocessableEntityError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/patients/{uuid}/appointments:
+    get:
+      operationId: patientAppointments
+      summary: Information for a specific patient's appointments.
+      security:
+        - auth0:
+            - partner_api:appointments:read
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/Uuid"
+          example: 9c823227-dbe1-408c-9e71-0685817e3410
+          in: path
+          name: uuid
+          required: true
+          description: The uuid of the patient to retrieve appointments for
+      responses:
+        "200":
+          $ref: "#/components/responses/PatientAppointmentsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "404":
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/appointments/{uuid}:
+    get:
+      operationId: appointmentsShow
+      summary: Retrieve info for an existing appointment
+      security:
+        - auth0:
+            - partner_api:appointments:read
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/Uuid"
+          example: 9c823227-dbe1-408c-9e71-0685817e3410
+          in: path
+          name: uuid
+          required: true
+          description: The uuid of the appointment to retrieve
+      responses:
+        "200":
+          $ref: "#/components/responses/AppointmentShowResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "404":
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/appointments/{uuid}/cancel:
+    put:
+      operationId: appointmentsCancel
+      summary: Cancel an existing appointment
+      security:
+        - auth0:
+            - partner_api:appointments:create
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/Uuid"
+          example: 9c823227-dbe1-408c-9e71-0685817e3410
+          in: path
+          name: uuid
+          required: true
+          description: The uuid of the appointment to cancel
+      requestBody:
+        $ref: "#/components/requestBodies/AppointmentCancelRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AppointmentShowResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "404":
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RequestValidationError"
+                  - $ref: "#/components/schemas/UnprocessableEntityError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /v1/appointments:
+    post:
+      operationId: appointmentsCreate
+      summary: Create an appointment
+      security:
+        - auth0:
+            - partner_api:appointments:create
+      requestBody:
+        $ref: "#/components/requestBodies/AppointmentsCreateRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AppointmentsCreateResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestValidationError"
+        "401":
+          description: Unauthorized, invalid or expired token
+        "404":
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotAcceptableError"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RequestValidationError"
+                  - $ref: "#/components/schemas/UnprocessableEntityError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+components:
+  requestBodies:
+    AppointmentCancelRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              initiator:
+                type: string
+                description: Who initiated the cancellation. Currently only "patient" is supported.
+                enum:
+                  - patient
+              cancellation_reason_text:
+                type: string
+                minLength: 1
+                description: Freeform text detailing why the appointment was cancelled.
+            required:
+              - initiator
+              - cancellation_reason_text
+    AppointmentsCreateRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              patient_id:
+                description: The uuid of the patient
+                allOf:
+                  - $ref: "#/components/schemas/Uuid"
+              provider_id:
+                description: The uuid of the provider
+                allOf:
+                  - $ref: "#/components/schemas/Uuid"
+              appointment_slot:
+                description: The start time of the slot to book, as returned by GET /v1/providers/slots (start_time_iso). Must be in UTC.
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              appointment_details:
+                type: object
+                properties:
+                  is_virtual:
+                    description: Whether the appointment is in person or virtual
+                    type: boolean
+                  appointment_type:
+                    description: The therapy modality of the appointment. Use "Individual", "Couples", or "Family" for therapy sessions. Use "Psychiatry" for psychiatric appointments. Use "15 min Consult" for brief initial consultations.
+                    type: string
+                    enum:
+                      - Individual
+                      - Couples
+                      - Family
+                      - 15 min Consult
+                      - Psychiatry
+                  two_letter_state:
+                    description: The two letter state code where the appointment will take place
+                    type: string
+                    pattern: ^[A-Z]{2}$
+                required:
+                  - is_virtual
+                  - appointment_type
+                  - two_letter_state
+            required:
+              - patient_id
+              - provider_id
+              - appointment_slot
+              - appointment_details
+      required: true
+    PatientCreateRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - partner_patient_id
+              - first_name
+              - last_name
+              - phone_number
+              - email
+              - date_of_birth
+              - location
+              - care_types
+              - is_eap_referral
+            properties:
+              partner_patient_id:
+                type: string
+                minLength: 1
+                description: The patient's identifier in your system. Returned in the response so you can correlate Rula's patient_id with your own records.
+              first_name:
+                type: string
+                minLength: 1
+                description: The first name of the patient.
+              last_name:
+                type: string
+                minLength: 1
+                description: The last name of the patient.
+              phone_number:
+                type: string
+                minLength: 1
+                description: The phone number for the patient. Must be an SMS number. Must be identical to guardian's if minor
+              email:
+                type: string
+                format: email
+                description: The email for the patient. Must be identical to guardian's if minor
+              date_of_birth:
+                type: string
+                format: date
+                description: The patient's date of birth in ISO 8601 date format (YYYY-MM-DD).
+              location:
+                type: string
+                pattern: ^[A-Z]{2}$
+                description: The state the patient resides in
+              insurance_id:
+                type: string
+                minLength: 1
+                description: The carrier id of the insurance for the patient. Use the id field from GET /v1/insurances. Required when is_self_pay is false.
+              subscriber_id:
+                type: string
+                minLength: 1
+                description: The insurance member/subscriber ID. Required when both is_eap_referral and is_self_pay are false.
+              sex_at_birth:
+                type: string
+                enum:
+                  - Female
+                  - Male
+                description: The sex assigned at birth of the patient
+              address:
+                type: object
+                properties:
+                  is_home_address:
+                    type: boolean
+                    description: Is the address given the patient home address
+                  street:
+                    type: string
+                    description: The address street of the patient
+                  apt_suite:
+                    type: string
+                    description: The address apt suite of the patient
+                  city:
+                    type: string
+                    description: The address city of the patient
+                  state:
+                    type: string
+                    pattern: ^[A-Z]{2}$
+                    description: The address state of the patient
+                  zip_code:
+                    type: string
+                    description: The address zip code of the patient
+              guardian:
+                type: object
+                description: Guardian information that is required if patient is a minor
+                required:
+                  - first_name
+                  - last_name
+                  - email
+                  - phone_number
+                properties:
+                  first_name:
+                    type: string
+                    minLength: 1
+                  last_name:
+                    type: string
+                    minLength: 1
+                  email:
+                    type: string
+                    format: email
+                  phone_number:
+                    type: string
+                    minLength: 1
+              care_types:
+                type: array
+                description: The types of care the patient is seeking. Determines what appointment types can be booked for this patient.
+                items:
+                  type: string
+                  enum:
+                    - Individual
+                    - Couples
+                    - Family
+                    - Psychiatry
+              is_self_pay:
+                type: boolean
+                default: false
+                description: Whether the patient will use self-pay instead of insurance. When false, insurance_id is required.
+              is_eap_referral:
+                type: boolean
+                description: Whether the patient is using an Employee Assistance Program (EAP). When false and is_self_pay is also false, subscriber_id is required.
+              employee_assistance_program:
+                type: object
+                required:
+                  - authorization_number
+                properties:
+                  authorization_number:
+                    type: string
+                    minLength: 1
+                    description: The EAP authorization number
+                  number_of_authorized_sessions:
+                    type: integer
+                    description: The remaining EAP authorized sessions required for session limited EAPs
+                  authorized_session_expiry_date:
+                    type: string
+                    format: date
+                    description: The expiration date of the EAP required for time limited EAPs
+                  upcoming_insurance:
+                    type: object
+                    description: Optionally provide an insurance to be used after EAP is used up. Cannot be another EAP insurance.
+                    required:
+                      - insurance_id
+                      - subscriber_id
+                    properties:
+                      insurance_id:
+                        type: string
+                        minLength: 1
+                        description: The carrier id of the insurance for the patient
+                      subscriber_id:
+                        type: string
+                        minLength: 1
+                        description: Subscriber id of the insurance
+            allOf:
+              - if:
+                  properties:
+                    is_eap_referral:
+                      const: false
+                    is_self_pay:
+                      const: false
+                then:
+                  required:
+                    - subscriber_id
+                errorMessage:
+                  if: "Conditional failed. Must provide subscriber_id for non-EAP referral unless patient is self-pay"
+              - if:
+                  properties:
+                    is_self_pay:
+                      const: false
+                then:
+                  required:
+                    - insurance_id
+                errorMessage:
+                  if: "Conditional failed. Must provide insurance_id if patient is not self-pay"
+              - if:
+                  required:
+                    - is_self_pay
+                  properties:
+                    is_self_pay:
+                      const: true
+                then:
+                  properties:
+                    is_eap_referral:
+                      const: false
+                      errorMessage: "must be equal to false when using self-pay"
+                errorMessage:
+                  if: "Conditional failed. Patient cannot be an EAP referral if using self-pay"
+      required: true
+    ProvidersSearchRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              limit:
+                description: The maximum number of providers to return, between 1 and 50
+                type: integer
+                minimum: 1
+                maximum: 50
+                default: 50
+              two_letter_state:
+                description: "Required. The two-letter state the provider is credentialed in (e.g., \"CA\", \"NY\")."
+                type: string
+                pattern: ^[A-Z]{2}$
+              care_category:
+                description: The category of care to filter providers by. "therapy" returns therapists; "psychiatry" returns prescribers. Defaults to "therapy" if omitted.
+                type: string
+                enum:
+                  - therapy
+                  - psychiatry
+                default: therapy
+              insurance:
+                description: Insurance network accepted by the provider. Must match the
+                  network_name value returned from the GET /insurances
+                  endpoint. The value is case-insensitive.
+                type: string
+              coverage_type:
+                description: The coverage type of the insurance accepted by the provider
+                type: string
+                enum:
+                  - commercial
+                  - medicare_advantage
+                  - medicare_ffs
+                  - medicaid
+                  - HMO
+                  - eap
+              gender:
+                description: The genders the provider identifies with
+                type: string
+                enum:
+                  - Agender
+                  - Bigender
+                  - Cis
+                  - Female
+                  - Gender fluid
+                  - Male
+                  - My gender isn't listed
+                  - Non-binary
+                  - Prefer not to respond
+                  - Trans
+              race:
+                description: The races or ethnicities the provider identifies with
+                type: string
+                enum:
+                  - American Indian or Alaska Native
+                  - Asian
+                  - Biracial or Multiracial
+                  - Black or African American
+                  - Caucasian or White
+                  - Hispanic or Latinx
+                  - Middle Eastern
+                  - Native Hawaiian or Other Pacific Islander
+                  - Other
+                  - Prefer Not to Respond
+                  - South East Asian
+              language:
+                description: The languages spoken by the provider
+                type: string
+                enum:
+                  - Afrikaans
+                  - Arabic
+                  - Armenian
+                  - ASL
+                  - Bengali
+                  - Bosnian
+                  - Cantonese
+                  - Chinese
+                  - Czech
+                  - Dutch
+                  - English
+                  - Farsi
+                  - Filipino
+                  - French
+                  - German
+                  - Greek
+                  - Haitian Creole
+                  - Hebrew
+                  - Hindi
+                  - Hmong
+                  - Hungarian
+                  - Indonesian
+                  - Iranian
+                  - Italian
+                  - Japanese
+                  - Javanese
+                  - Korean
+                  - My selection isn't listed
+                  - Norwegian
+                  - Other
+                  - Patois
+                  - Polish
+                  - Portuguese
+                  - Punjabi
+                  - Romanian
+                  - Russian
+                  - Spanish
+                  - Swahili
+                  - Swedish
+                  - Thai
+                  - Turkish
+                  - Ukrainian
+                  - Urdu
+                  - Vietnamese
+                  - Yoruba
+              specialization:
+                description: The specializations the provider has
+                type: string
+                enum:
+                  - Addiction
+                  - ADHD
+                  - Adoption
+                  - Aging
+                  - Alcohol Use
+                  - Alzheimer's
+                  - Anger Management
+                  - Antisocial Personality
+                  - Anxiety
+                  - Autism or Asperger's Syndrome
+                  - Behavioral Issues
+                  - Bipolar Disorder
+                  - Borderline Personality
+                  - Career Counseling
+                  - Child Abuse or Neglect
+                  - Chronic Illness
+                  - Chronic Impulsivity
+                  - Chronic Pain
+                  - Chronic Relapse
+                  - Codependency
+                  - Coping Skills
+                  - Cultural Stress
+                  - Depersonalization/Derealization (DPDR)
+                  - Depression
+                  - Developmental Disorders
+                  - Dissociative Disorders
+                  - Divorce
+                  - Domestic Violence
+                  - Drug Abuse
+                  - Eating Disorders
+                  - Family Conflict
+                  - Gambling
+                  - Gender Identity
+                  - Grief
+                  - Hoarding
+                  - Impulse Control Disorders
+                  - Impulsivity
+                  - Infertility
+                  - Infidelity
+                  - Intellectual Disability
+                  - Internet Addiction
+                  - Job Stress
+                  - Learning Disabilities
+                  - Legal Stress
+                  - LGBTQIA+
+                  - Life Transitions
+                  - Men's Issues
+                  - Military and Veterans
+                  - Mood Disorders
+                  - Obsessive-Compulsive (OCD)
+                  - Older Adult
+                  - Older Adults
+                  - Oppositional Defiance
+                  - Panic Attacks
+                  - Parenting
+                  - Peer Relationships
+                  - Personality Disorders
+                  - Pregnancy, Prenatal, Postpartum
+                  - Psychosis
+                  - Racial Identity
+                  - Racial Trauma
+                  - Relapse Prevention
+                  - Relationship Issues
+                  - Schizophrenia
+                  - School Issues
+                  - Self Esteem
+                  - Self-Harming
+                  - Sex Therapy
+                  - Sexual Abuse
+                  - Sexual Addiction
+                  - Sleep or Insomnia
+                  - Spirituality
+                  - Sports Performance
+                  - Stress
+                  - Substance Use
+                  - Suicidal Ideation
+                  - Thought Disorders
+                  - Transgender Issues
+                  - Trauma and PTSD
+                  - Traumatic Brain Injury
+                  - Video Game Addiction
+                  - Weight Loss
+                  - Women's Issues
+              modality:
+                description: The therapeutic modalities the provider practices
+                type: string
+                enum:
+                  - Accelerated Experiential Dynamic Psychotherapy
+                  - Accelerated Experiential Dynamic Psychotherapy (AEDP)
+                  - Acceptance and Commitment (ACT)
+                  - Art Therapy
+                  - Attachment-based
+                  - Behavioral Activation
+                  - Biofeedback
+                  - Brainspotting
+                  - Child/Parent Psychotherapy
+                  - Christian Counseling
+                  - Cognitive Behavioral (CBT)
+                  - Cognitive Processing (CPT)
+                  - Cognitive Processing Therapy (CPT)
+                  - Collaborative Assessment and Management of Suicidality
+                    (CAMS)
+                  - Collaborative Assessment & Management of Suicidality (CAMS)
+                  - Compassion Focused
+                  - Compassion Focused Therapy
+                  - Complicated Grief Therapy (CGT)
+                  - Dance/Movement Therapy
+                  - Dialectical (DBT)
+                  - EMDR
+                  - Emotionally Focused Therapy (EFT)
+                  - Existential Therapy
+                  - Experiential Therapy
+                  - Exposure and Response Prevention (ERP)
+                  - Exposure Response Prevention
+                  - Expressive Arts
+                  - Gestalt
+                  - Gottman Method
+                  - Humanistic
+                  - Humanistic Therapy
+                  - Imago Relationship Therapy
+                  - Internal Family Systems (IFS)
+                  - Interpersonal
+                  - Interpersonal Therapy (IPT)
+                  - Mindfulness-Based
+                  - Moral Reconation Therapy (MRT)
+                  - Motivational Interviewing
+                  - Multidimensional Family Therapy
+                  - Multidimensional Family Therapy (MDFT)
+                  - Music Therapy
+                  - Narrative
+                  - Narrative Therapy
+                  - Neurofeedback
+                  - Object Relations
+                  - Parent-Child Interaction (PCIT)
+                  - Parent-Child Interaction Therapy (PCIT)
+                  - Play Therapy
+                  - Prolonged Exposure (PE)
+                  - Prolonged Exposure Therapy
+                  - Psychoanalytic
+                  - Psychobiological Approach Couples Therapy (PACT)
+                  - Psychobiological Approach to Couples Therapy (PACT)
+                  - Psychodynamic
+                  - Psychodynamic Therapy
+                  - Rational Emotive Behavior (REBT)
+                  - Rational Emotive Behavior Therapy (REBT)
+                  - Reality Therapy
+                  - Sandplay
+                  - Schema Therapy
+                  - Sex Therapy
+                  - Solution Focused Brief (SFBT)
+                  - Somatic
+                  - Somatic Therapy
+                  - Structural Family Therapy
+                  - Trauma Focused
+                  - Trauma Focused Dialectical (DBT)
+                  - Trust-Based Relational Intervention
+                  - Trust-Based Relational Intervention (TBRI)
+              willing_to_see:
+                description: Criteria of patients the provider is willing to see
+                oneOf:
+                  - const: adults
+                    description: Adults (18+)
+                  - const: children
+                    description: Children (ages 5-7)
+                  - const: minors
+                    description: Minors (ages 13-17)
+                  - const: preteen
+                    description: Preteen (ages 8-12)
+                  - const: individuals
+                    description: Individual therapy
+                  - const: couples
+                    description: Couples therapy
+                  - const: families
+                    description: Family therapy
+              location_type:
+                description: The types of locations where the provider offers service
+                type: string
+                enum:
+                  - in_person
+                  - telemedicine
+              proximity:
+                description: Filter providers by distance from a geographic location. Useful for finding in-person providers near a patient's address.
+                type: object
+                properties:
+                  lat:
+                    description: Latitude of the search center
+                    type: number
+                  long:
+                    description: Longitude of the search center
+                    type: number
+                  max_miles:
+                    description: Maximum distance in miles from the search center
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                required:
+                  - lat
+                  - long
+                  - max_miles
+              availability:
+                description: Filter providers to those who have availability within the specified weekly schedule (e.g. weekday mornings). All days of the week and time_zone are required. Cannot be specified if absolute_availability is provided.
+                type: object
+                properties:
+                  sun:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  mon:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  tue:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  wed:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  thu:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  fri:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  sat:
+                    description: An array of hour spans (start hour 0-23, end hour 1-24)
+                    maxItems: 4
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        minimum: 0
+                        maximum: 24
+                      minItems: 2
+                      maxItems: 2
+                  time_zone:
+                    description: IANA timezone name (e.g., 'America/Los_Angeles')
+                    type: string
+                required:
+                  - sun
+                  - mon
+                  - tue
+                  - wed
+                  - thu
+                  - fri
+                  - sat
+                  - time_zone
+              absolute_availability:
+                description: An array of [start, end] ISO 8601 datetime pairs representing specific date-time windows the provider must be available within. Cannot be specified if availability is provided.
+                type: array
+                items:
+                  minItems: 2
+                  maxItems: 2
+                  type: array
+                  items:
+                    type: string
+            required:
+              - two_letter_state
+          example:
+            two_letter_state: CA
+            insurance: Aetna
+            availability:
+              sun:
+                - - 0
+                  - 8
+                - - 16
+                  - 20
+              mon:
+                - - 9
+                  - 17
+              tue:
+                - - 9
+                  - 17
+              wed:
+                - - 9
+                  - 17
+              thu:
+                - - 9
+                  - 17
+              fri:
+                - - 9
+                  - 17
+              sat: []
+              time_zone: America/Los_Angeles
+            absolute_availability:
+              - - "2026-01-01T00:00:00Z"
+                - "2026-01-01T23:59:59Z"
+              - - "2026-01-02T00:00:00Z"
+                - "2026-01-02T23:59:59Z"
+  responses:
+    AppointmentsCreateResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              appointment_id:
+                type: string
+              status:
+                description: The booking status of the appointment. "held" is returned when an appointment is first created. "confirmed" indicates the appointment has been fully confirmed.
+                type: string
+                enum:
+                  - confirmed
+                  - held
+            required:
+              - appointment_id
+              - status
+            additionalProperties: false
+    PatientCreateResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              patient_id:
+                type: string
+                description: The Rula-assigned UUID for the patient. Use this in subsequent API calls (e.g. POST /v1/appointments, GET /v1/patients/{uuid}/appointments).
+              partner_patient_id:
+                type: string
+                description: The patient's identifier from your system, echoed back from the request.
+            required:
+              - patient_id
+              - partner_patient_id
+    AppointmentShowResponse:
+      description: Appointment details retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Appointment"
+    PatientAppointmentsResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              appointments:
+                description: List of appointments belonging to the patient
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+            required:
+              - appointments
+            additionalProperties: false
+    ProvidersSearchResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              providers:
+                description: List of providers matching the search criteria
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: The unique identifier for the provider
+                      allOf:
+                        - $ref: "#/components/schemas/Uuid"
+                    first_name:
+                      description: The provider's first name
+                      type: string
+                    last_name:
+                      description: The provider's last name
+                      type: string
+                    profile_image_url:
+                      description: URL to the provider's profile image
+                      type: string
+                    profile_bio:
+                      description: A brief biography of the provider
+                      type: string
+                    genders:
+                      description: The genders the provider identifies with
+                      type: array
+                      items:
+                        type: string
+                    races:
+                      description: The races or ethnicities the provider identifies with
+                      type: array
+                      items:
+                        type: string
+                    slot_start_time:
+                      description: The start time of the provider's earliest available slot.
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                  required:
+                    - id
+                    - first_name
+                    - last_name
+                  additionalProperties: false
+            required:
+              - providers
+            additionalProperties: false
+    InsurancesIndexResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              insurances:
+                description: List of insurances Rula accepts
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: >
+                        The unique identifier for the insurance carrier.
+                        Use this to uniquely reference a specific carrier across API calls such as the POST /v1/patients endpoint.
+                      type: string
+                      example: 123e4567-e89b-12d3-a456-426614174000
+                    carrier_display_name:
+                      description: Human-readable name of the insurance carrier, suitable for displaying to end users.
+                      type: string
+                      example: Aetna
+                    network_name:
+                      description: >
+                        The insurance network name. Use this value in the insurance field when searching for providers via POST /v1/providers/search. The value is case-insensitive.
+                      type: string
+                      example: aetna
+                    state:
+                      description: Two-letter state code indicating which state this insurance is accepted in.
+                      type: string
+                      pattern: ^[A-Z]{2}$
+                      example: CA
+                    coverage_type:
+                      description: The type of insurance coverage.
+                      type: string
+                      enum:
+                        - commercial
+                        - eap
+                        - HMO
+                        - medicaid
+                        - medicare_advantage
+                        - medicare_ffs
+                      example: commercial
+                  required:
+                    - id
+                    - carrier_display_name
+                    - network_name
+                    - state
+                    - coverage_type
+                  additionalProperties: false
+            required:
+              - insurances
+            additionalProperties: false
+    ProvidersShowResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: The unique identifier for the provider
+                allOf:
+                  - $ref: "#/components/schemas/Uuid"
+              first_name:
+                description: The provider's first name
+                type: string
+              last_name:
+                description: The provider's last name
+                type: string
+              profile_image_url:
+                description: URL to the provider's profile image
+                type: string
+              profile_bio:
+                description: A brief biography of the provider
+                type: string
+              profile_summary:
+                description: Summary of the provider's profile
+                type: string
+              profile_approach:
+                description: Introduction to potential patients, high level overview of approach
+                  and background
+                type: string
+              profile_focus:
+                description: Area of focus for provider. Helps align patient that best fits
+                  provider
+                type: string
+              profile_journey:
+                description: Provider's journey to become a therapist. Helps patients understand
+                  motivations, signal of whether there's a fit in terms of
+                  lived experience
+                type: string
+              profile_goals:
+                description: Goals for patients, helps with patient alignment
+                type: string
+              profile_first_session:
+                description: Expectations for the first session
+                type: string
+              role_string:
+                description: String representation of the provider's role
+                type: string
+                enum:
+                  - Therapist
+                  - Prescriber
+                  - Unknown
+              insurances:
+                description: List of insurances accepted by the provider
+                type: array
+                items:
+                  type: string
+              active_states:
+                description: List of two-letter state codes for the states the provider is active in
+                type: array
+                items:
+                  type: string
+                  pattern: ^[A-Z]{2}$
+              willing_to_see:
+                description: Criteria of patients the provider is willing to see
+                type: array
+                items:
+                  oneOf:
+                    - const: adults
+                      description: Adults (18+)
+                    - const: children
+                      description: Children (ages 5-7)
+                    - const: minors
+                      description: Minors (ages 13-17)
+                    - const: preteen
+                      description: Preteen (ages 8-12)
+                    - const: individuals
+                      description: Individual therapy
+                    - const: couples
+                      description: Couples therapy
+                    - const: families
+                      description: Family therapy
+            required:
+              - id
+              - first_name
+              - last_name
+            additionalProperties: false
+    ProvidersSlotsResponse:
+      description: Default Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              slots:
+                description: List of slots available for the provider
+                type: array
+                items:
+                  type: object
+                  properties:
+                    provider_id:
+                      description: The unique Rula-provided identifier for the provider
+                      allOf:
+                        - $ref: "#/components/schemas/Uuid"
+                    duration_mins:
+                      description: Duration of the slot in minutes
+                      type: integer
+                      exclusiveMinimum: 0
+                      maximum: 9007199254740991
+                      example: 45
+                    location:
+                      description: The location type of the slot
+                      type: string
+                      enum:
+                        - in_person
+                        - telemedicine
+                    series_type:
+                      description: Whether the slot is for a first appointment ("initial") or a subsequent session ("followup").
+                      type: string
+                      enum:
+                        - initial
+                        - followup
+                    start_time_iso:
+                      description: The ISO 8601 formatted start time of the slot
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      example: 2024-01-15T10:00:00Z
+                  required:
+                    - provider_id
+                    - duration_mins
+                    - location
+                    - series_type
+                    - start_time_iso
+                  additionalProperties: false
+            required:
+              - slots
+            additionalProperties: false
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        appointment_id:
+          description: The unique identifier for the appointment
+          allOf:
+            - $ref: "#/components/schemas/Uuid"
+        provider_id:
+          description: The unique identifier for the provider
+          allOf:
+            - $ref: "#/components/schemas/Uuid"
+        start_time:
+          description: The UTC timestamp of the appointment start time
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+        end_time:
+          description: The UTC timestamp of the appointment end time
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+        status:
+          description: The status of the appointment
+          type: string
+          enum:
+            - held
+            - confirmed
+            - canceled
+            - completed
+        appointment_type:
+          description: "The location type of the appointment (telemedicine or in_person). Note: this is distinct from the therapy modality (Individual, Couples, etc.) which is captured in therapy_type."
+          type: string
+          enum:
+            - telemedicine
+            - in_person
+        therapy_type:
+          description: The therapy type the appointment is for
+          type: string
+          enum:
+            - individual
+            - family
+            - couples
+            - psychiatric
+      required:
+        - appointment_id
+        - provider_id
+        - start_time
+        - end_time
+        - status
+        - appointment_type
+        - therapy_type
+      additionalProperties: false
+    Uuid:
+      type: string
+      format: uuid
+      pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+    RequestValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Invalid request
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: The field that failed validation
+                example: querystring.uuid
+              message:
+                type: string
+                description: Description of the validation failure
+                example: must match pattern \"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$\"
+            required:
+              - field
+              - message
+      required:
+        - message
+    InternalServerError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Internal Server Error
+        trace_id:
+          type: string
+          description: The trace ID for the error
+      required:
+        - message
+    UnprocessableEntityError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Unprocessable Entity
+      required:
+        - message
+    NotFoundError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Not Found
+      required:
+        - message
+    NotAcceptableError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Not Acceptable
+      required:
+        - message
+    ConflictError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Conflict
+      required:
+        - message
+  securitySchemes:
+    auth0:    # <---- arbitrary name
+      type: oauth2
+      description: >-
+        This API uses OAuth 2 with the client credentials flow.
+        In addition to the endpoint-specific functional scope(s), every token must include
+        the environment scope matching the target environment:
+        `partner_api:production` for production, or `partner_api:staging` for staging.
+      flows:
+        clientCredentials:
+          tokenUrl: https://login.rula.com/oauth/token
+          refreshUrl: https://login.rula.com/oauth/token
+          scopes:
+            partner_api:insurances:read: Read access to insurance data
+            partner_api:providers:read: Read access to provider data
+            partner_api:patients:create: Create new patients
+            partner_api:appointments:read: Read access to appointments data
+            partner_api:appointments:create: Create new appointments
+            partner_api:production: Access to the production environment
+            partner_api:staging: Access to the staging environment
