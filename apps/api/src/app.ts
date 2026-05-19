@@ -33,6 +33,7 @@ export async function buildApp(
   await app.register(cors, {
     origin: config.APP_BASE_URL,
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   })
 
   app.get('/health', async () => ({ status: 'ok', useMockApi: config.USE_MOCK_API }))
