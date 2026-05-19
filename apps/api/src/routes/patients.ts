@@ -11,7 +11,7 @@ import type {
 export async function patientsRoutes(app: FastifyInstance) {
   app.post('/v1/patients', async (request) => {
     const body = request.body as PatientCreateBody
-    if (config.MOCK_BOOKINGS || body.location !== 'MB') return mockHandlers.createPatient(body)
+    if (config.USE_MOCK_API || body.location !== 'MB') return mockHandlers.createPatient(body)
     return partnerApiClient.request<PatientCreateResponse>('/v1/patients', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -19,7 +19,7 @@ export async function patientsRoutes(app: FastifyInstance) {
   })
 
   app.get<{ Params: { uuid: string } }>('/v1/patients/:uuid/appointments', async (request) => {
-    if (config.MOCK_BOOKINGS) return mockHandlers.getPatientAppointments(request.params.uuid)
+    if (config.USE_MOCK_API) return mockHandlers.getPatientAppointments(request.params.uuid)
     return partnerApiClient.request<PatientAppointmentsResponse>(
       `/v1/patients/${request.params.uuid}/appointments`,
     )

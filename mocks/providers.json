@@ -29,6 +29,56 @@
       "genders": ["Female"],
       "races": ["Hispanic or Latinx"],
       "slot_start_time": "2030-06-02T10:00:00Z"
+    },
+    {
+      "id": "mock-provider-004",
+      "first_name": "David",
+      "last_name": "Kim",
+      "profile_image_url": null,
+      "profile_bio": "I help individuals and couples work through conflict, communication breakdowns, and personal growth using emotionally-focused therapy.",
+      "genders": ["Male"],
+      "races": ["Asian"],
+      "slot_start_time": "2030-06-02T13:00:00Z"
+    },
+    {
+      "id": "mock-provider-005",
+      "first_name": "Amara",
+      "last_name": "Okafor",
+      "profile_image_url": null,
+      "profile_bio": "I provide culturally responsive care for individuals dealing with anxiety, identity, and life transitions, drawing from narrative and somatic approaches.",
+      "genders": ["Female"],
+      "races": ["Black or African American"],
+      "slot_start_time": "2030-06-03T09:00:00Z"
+    },
+    {
+      "id": "mock-provider-006",
+      "first_name": "James",
+      "last_name": "Patel",
+      "profile_image_url": null,
+      "profile_bio": "I specialize in OCD, panic disorder, and phobias using ERP and CBT. I believe in practical, evidence-based tools that create lasting change.",
+      "genders": ["Male"],
+      "races": ["Asian"],
+      "slot_start_time": "2030-06-04T11:00:00Z"
+    },
+    {
+      "id": "mock-provider-007",
+      "first_name": "Nadia",
+      "last_name": "Flores",
+      "profile_image_url": null,
+      "profile_bio": "I work with adults and adolescents on depression, trauma, and family conflict, integrating DBT and attachment-based therapy.",
+      "genders": ["Female"],
+      "races": ["Hispanic or Latinx"],
+      "slot_start_time": "2030-06-05T15:00:00Z"
+    },
+    {
+      "id": "mock-provider-008",
+      "first_name": "Thomas",
+      "last_name": "Nguyen",
+      "profile_image_url": null,
+      "profile_bio": "As a therapist with a background in sports psychology, I support high-performers managing burnout, perfectionism, and performance anxiety.",
+      "genders": ["Male"],
+      "races": ["Asian"],
+      "slot_start_time": "2030-06-03T16:00:00Z"
     }
   ]
 }

@@ -3,7 +3,7 @@ import { buildApp } from '../app.js'
 
 const { mockConfig } = vi.hoisted(() => {
   const mockConfig = {
-    MOCK_BOOKINGS: true,
+    USE_MOCK_API: true,
     AUTH0_TOKEN_URL: 'https://test.auth0.com/oauth/token',
     PARTNER_API_BASE_URL: 'https://api.test.example.com',
     PARTNER_API_AUDIENCE: 'https://api.test.example.com',
@@ -31,7 +31,7 @@ import { partnerApiClient } from '../services/partnerApiClient.js'
 const mockRequest = vi.mocked(partnerApiClient.request)
 
 beforeEach(() => {
-  mockConfig.MOCK_BOOKINGS = true
+  mockConfig.USE_MOCK_API = true
 })
 
 afterEach(() => {
@@ -43,7 +43,7 @@ describe('GET /health', () => {
     const app = await buildApp()
     const res = await app.inject({ method: 'GET', url: '/health' })
     expect(res.statusCode).toBe(200)
-    expect(res.json()).toMatchObject({ status: 'ok', mockBookings: true })
+    expect(res.json()).toMatchObject({ status: 'ok', useMockApi: true })
     await app.close()
   })
 })
@@ -115,7 +115,7 @@ describe('read routes (always hit partner API)', () => {
   })
 })
 
-describe('write routes (mocked when MOCK_BOOKINGS=true)', () => {
+describe('write routes (mocked when USE_MOCK_API=true)', () => {
   it('POST /v1/patients returns created patient', async () => {
     const app = await buildApp()
     const res = await app.inject({

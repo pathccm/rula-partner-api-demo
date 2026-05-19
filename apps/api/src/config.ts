@@ -8,7 +8,7 @@ const envSchema = z.object({
   // When true, write endpoints (patient creation, booking) use mock handlers.
   // When false, state MB uses the real partner API; all other states still mock.
   // When credentials are absent, all endpoints use mocks regardless of this setting.
-  MOCK_BOOKINGS: z
+  USE_MOCK_API: z
     .string()
     .transform((v: string) => v === 'true' || v === '1')
     .default(true),

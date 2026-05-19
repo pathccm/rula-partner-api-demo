@@ -35,7 +35,7 @@ export async function buildApp(
     credentials: true,
   })
 
-  app.get('/health', async () => ({ status: 'ok', mockBookings: config.MOCK_BOOKINGS }))
+  app.get('/health', async () => ({ status: 'ok', useMockApi: config.USE_MOCK_API }))
 
   // Encapsulated scope: API key check applies to all proxy routes
   await app.register(async (sub) => {
