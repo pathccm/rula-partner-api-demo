@@ -48,7 +48,10 @@ describe('GET /health', () => {
   })
 })
 
-describe('read routes (always hit partner API)', () => {
+describe('read routes (proxy to partner API when USE_MOCK_API=false)', () => {
+  beforeEach(() => {
+    mockConfig.USE_MOCK_API = false
+  })
   it('GET /v1/insurances proxies to partner API', async () => {
     mockRequest.mockResolvedValueOnce({
       insurances: [
