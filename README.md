@@ -66,6 +66,12 @@ To use the live partner API, copy `apps/api/.env.example` to `apps/api/.env`, fi
 
 ---
 
+## Documentation
+
+The full Partner API user guide is available at [`docs/UserGuide-RulaPartnerAPI.md`](docs/UserGuide-RulaPartnerAPI.md).
+
+---
+
 ## Getting credentials
 
 Contact your Rula partner representative or email [epd-partnerships-deals-eng@rula.com](mailto:epd-partnerships-deals-eng@rula.com) to request OAuth2 credentials (`PARTNER_API_CLIENT_ID`, `PARTNER_API_CLIENT_SECRET`, `PARTNER_API_BASE_URL`, `PARTNER_API_AUDIENCE`, `AUTH0_TOKEN_URL`).
