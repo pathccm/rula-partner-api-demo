@@ -17,7 +17,7 @@ jobs:
       - name: Extract base spec
         id: base-spec
         run: |
-          if git show origin/${{ github.base_ref }}:openapi/partner-scheduling.yaml > openapi/base-spec.yaml 2>/dev/null; then
+          if git show origin/${{ github.base_ref }}:openapi/openapi.yaml > openapi/base-spec.yaml 2>/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -29,6 +29,6 @@ jobs:
         uses: oasdiff/oasdiff-action/breaking@main
         with:
           base: openapi/base-spec.yaml
-          revision: openapi/partner-scheduling.yaml
+          revision: openapi/openapi.yaml
           fail-on: ERR
           flatten-allof: true
