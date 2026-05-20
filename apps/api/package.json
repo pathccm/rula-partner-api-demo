@@ -13,7 +13,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@fastify/cors": "^10.0.2",
+    "@fastify/cors": "^11.2.0",
     "@fastify/static": "^9.1.0",
     "@partner-scheduling-demo/api-client": "workspace:*",
     "fastify": "^5.3.3",
