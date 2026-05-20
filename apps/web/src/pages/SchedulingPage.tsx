@@ -270,7 +270,9 @@ export function SchedulingPage() {
   const insuranceRef = useRef<HTMLDivElement>(null)
 
   // Step 3 — provider filters
-  const [filterLanguages, setFilterLanguages] = useState<Array<(typeof LANGUAGE_OPTIONS)[number]>>([])
+  const [filterLanguages, setFilterLanguages] = useState<Array<(typeof LANGUAGE_OPTIONS)[number]>>(
+    [],
+  )
   const [filterGenders, setFilterGenders] = useState<Array<(typeof GENDER_OPTIONS)[number]>>([])
   const [filterRaces, setFilterRaces] = useState<Array<(typeof RACE_OPTIONS)[number]>>([])
   const [filterSpecializations, setFilterSpecializations] = useState<

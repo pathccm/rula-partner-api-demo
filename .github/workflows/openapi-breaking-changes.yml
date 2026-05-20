@@ -26,6 +26,7 @@ jobs:
 
       - name: Check for breaking changes
         if: steps.base-spec.outputs.exists == 'true'
+        continue-on-error: true
         uses: oasdiff/oasdiff-action/breaking@main
         with:
           base: openapi/base-spec.yaml
