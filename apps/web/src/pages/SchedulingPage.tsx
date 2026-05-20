@@ -37,11 +37,59 @@ const LOCATION_TYPES = [
 
 const US_STATES = ['CA', 'MB', 'TN']
 
+const LANGUAGE_OPTIONS = [
+  'English',
+  'Spanish',
+  'Mandarin',
+  'Cantonese',
+  'Tagalog',
+  'Vietnamese',
+  'Arabic',
+  'French',
+  'Korean',
+  'Russian',
+  'Hindi',
+  'Portuguese',
+  'Hmong',
+  'Farsi',
+  'Armenian',
+  'ASL',
+  'Bengali',
+  'Punjabi',
+  'Japanese',
+  'Urdu',
+  'Haitian Creole',
+  'Polish',
+  'Italian',
+  'German',
+  'Bosnian',
+  'Ukrainian',
+  'Romanian',
+  'Greek',
+  'Turkish',
+  'Hebrew',
+  'Swahili',
+  'Yoruba',
+  'Thai',
+  'Indonesian',
+  'Javanese',
+  'Dutch',
+  'Hungarian',
+  'Czech',
+  'Swedish',
+  'Norwegian',
+  'Afrikaans',
+  'Patois',
+  'Iranian',
+  'Other',
+  "My selection isn't listed",
+] as const
+
 const GENDER_OPTIONS = [
   'Female',
   'Male',
-  'Non-binary',
   'Trans',
+  'Non-binary',
   'Gender fluid',
   'Agender',
   'Bigender',
@@ -84,7 +132,7 @@ const SPECIALIZATION_OPTIONS = [
   'Sleep or Insomnia',
   'Chronic Illness',
   'Chronic Pain',
-  'Pregnancy/Prenatal/Postpartum',
+  'Pregnancy, Prenatal, Postpartum',
 ] as const
 
 const PROVIDERS_PER_PAGE = 10
@@ -222,6 +270,9 @@ export function SchedulingPage() {
   const insuranceRef = useRef<HTMLDivElement>(null)
 
   // Step 3 — provider filters
+  const [filterLanguages, setFilterLanguages] = useState<Array<(typeof LANGUAGE_OPTIONS)[number]>>(
+    [],
+  )
   const [filterGenders, setFilterGenders] = useState<Array<(typeof GENDER_OPTIONS)[number]>>([])
   const [filterRaces, setFilterRaces] = useState<Array<(typeof RACE_OPTIONS)[number]>>([])
   const [filterSpecializations, setFilterSpecializations] = useState<
@@ -298,6 +349,7 @@ export function SchedulingPage() {
   type SearchProviderParams = Parameters<typeof api.searchProviders>[0]
 
   async function handleApplyFilters(filters?: {
+    language?: SearchProviderParams['language']
     gender?: SearchProviderParams['gender']
     race?: SearchProviderParams['race']
     specialization?: SearchProviderParams['specialization']
@@ -431,6 +483,7 @@ export function SchedulingPage() {
     setSelectedInsurance(null)
     setInsuranceQuery('')
     setInsuranceOpen(false)
+    setFilterLanguages([])
     setFilterGenders([])
     setFilterRaces([])
     setFilterSpecializations([])
@@ -684,6 +737,20 @@ export function SchedulingPage() {
           </p>
 
           <div className="filter-section">
+            <h3 className="filter-section-label">Language</h3>
+            <FilterChipGroup
+              id="language"
+              options={LANGUAGE_OPTIONS}
+              selected={filterLanguages}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) =>
+                setFilterLanguages((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
+              }
+            />
+          </div>
+
+          <div className="filter-section">
             <h3 className="filter-section-label">Gender</h3>
             <FilterChipGroup
               id="gender"
@@ -734,6 +801,7 @@ export function SchedulingPage() {
               disabled={loading}
               onClick={() =>
                 void handleApplyFilters({
+                  language: filterLanguages[0] as SearchProviderParams['language'],
                   gender: filterGenders[0] as SearchProviderParams['gender'],
                   race: filterRaces[0] as SearchProviderParams['race'],
                   specialization:
@@ -747,6 +815,7 @@ export function SchedulingPage() {
               type="button"
               className="btn-ghost"
               onClick={() => {
+                setFilterLanguages([])
                 setFilterGenders([])
                 setFilterRaces([])
                 setFilterSpecializations([])

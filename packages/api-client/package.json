@@ -10,7 +10,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "generate": "openapi-typescript ../../openapi/partner-scheduling.yaml -o src/generated.ts"
+    "generate": "openapi-typescript ../../openapi/openapi.yaml -o src/generated.ts"
   },
   "dependencies": {
     "@partner-scheduling-demo/shared": "workspace:*",

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { config, hasCredentials } from '../config.js'
+import { GENDER_MAP, LANGUAGE_MAP, RACE_MAP, SPECIALIZATION_MAP } from '../filterMaps.js'
 import { mockHandlers } from '../plugins/mockHandler.js'
 import { partnerApiClient } from '../services/partnerApiClient.js'
 import type {
@@ -12,9 +13,19 @@ import type {
 export async function providersRoutes(app: FastifyInstance) {
   app.post('/v1/providers/search', async (request) => {
     if (config.USE_MOCK_API || !hasCredentials) return mockHandlers.searchProviders()
+    const body = request.body as ProvidersSearchBody
+    const mapped = {
+      ...body,
+      ...(body.language != null && { language: LANGUAGE_MAP[body.language] ?? body.language }),
+      ...(body.gender != null && { gender: GENDER_MAP[body.gender] ?? body.gender }),
+      ...(body.race != null && { race: RACE_MAP[body.race] ?? body.race }),
+      ...(body.specialization != null && {
+        specialization: SPECIALIZATION_MAP[body.specialization] ?? body.specialization,
+      }),
+    }
     return partnerApiClient.request<ProvidersSearchResponse>('/v1/providers/search', {
       method: 'POST',
-      body: JSON.stringify(request.body as ProvidersSearchBody),
+      body: JSON.stringify(mapped),
     })
   })
 

@@ -25,7 +25,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-// Types aligned to the partner-scheduling-api spec (v0.23.2)
+// Types aligned to the partner-scheduling-api spec (v0.24.0)
 
 export interface Insurance {
   id: string
@@ -108,6 +108,52 @@ export const api = {
     insurance?: string
     care_category?: 'therapy' | 'psychiatry'
     limit?: number
+    language?:
+      | 'Afrikaans'
+      | 'Arabic'
+      | 'Armenian'
+      | 'ASL'
+      | 'Bengali'
+      | 'Bosnian'
+      | 'Cantonese'
+      | 'Czech'
+      | 'Dutch'
+      | 'English'
+      | 'Farsi'
+      | 'French'
+      | 'German'
+      | 'Greek'
+      | 'Haitian Creole'
+      | 'Hebrew'
+      | 'Hindi'
+      | 'Hmong'
+      | 'Hungarian'
+      | 'Indonesian'
+      | 'Iranian'
+      | 'Italian'
+      | 'Japanese'
+      | 'Javanese'
+      | 'Korean'
+      | 'Mandarin'
+      | 'Norwegian'
+      | 'Other'
+      | 'Patois'
+      | 'Polish'
+      | 'Portuguese'
+      | 'Punjabi'
+      | 'Romanian'
+      | 'Russian'
+      | 'Spanish'
+      | 'Swahili'
+      | 'Swedish'
+      | 'Tagalog'
+      | 'Thai'
+      | 'Turkish'
+      | 'Ukrainian'
+      | 'Urdu'
+      | 'Vietnamese'
+      | 'Yoruba'
+      | "My selection isn't listed"
     gender?:
       | 'Agender'
       | 'Bigender'
@@ -163,7 +209,7 @@ export const api = {
       | 'Grief'
       | 'LGBTQIA+'
       | 'Life Transitions'
-      | 'Pregnancy/Prenatal/Postpartum'
+      | 'Pregnancy, Prenatal, Postpartum'
       | 'Relationship Issues'
       | 'Self Esteem'
       | 'Sleep or Insomnia'
