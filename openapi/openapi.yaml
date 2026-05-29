@@ -1,11 +1,15 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 0.24.0
+  version: 0.24.1
   description: >
     Rula's API for partners. This API is currently a WIP and may change at any time.
 
     Updates:
+
+    v0.24.1
+      Changelog:
+        + Added optional `guardian_type` field to guardian object on POST /v1/patients (enum: parent | medical, defaults to parent)
 
     v0.24.0
       Changelog:
@@ -801,6 +805,15 @@ components:
                   phone_number:
                     type: string
                     minLength: 1
+                  guardian_type:
+                    type: string
+                    enum:
+                      - parent
+                      - medical
+                    description: >
+                      The type of guardianship. Defaults to `parent` if not provided.
+                      `parent` — a biological or adoptive parent or legal guardian acting in a parental role.
+                      `medical` — a person with medical decision-making authority who is not a parent (e.g. healthcare proxy, court-appointed medical guardian).
               care_types:
                 type: array
                 description: The types of care the patient is seeking. Determines what appointment types can be booked for this patient.
