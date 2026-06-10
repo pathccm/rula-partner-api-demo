@@ -1,11 +1,22 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 0.24.1
+  version: 0.25.1
   description: >
     Rula's API for partners. This API is currently a WIP and may change at any time.
 
     Updates:
+
+    v0.25.1
+      Changelog:
+        + Added specialization value: first_responders
+        + Added language value: suzhou
+        + Marked deprecated specialization values (chronic_impulsivity, chronic_relapse, drug_abuse, impulsivity, job_stress, legal_stress, military_and_veterans, racial_trauma), race value (other), and language values (not_listed, other)
+        + Deprecated values will remain accepted but are no longer supported for filtering
+
+    v0.25.0
+      Changelog:
+        + Added stricter validation to POST /v1/patients so that providing EAP info not needed for an EAP referral will error (e.g. providing number_of_authorized_sessions for EAP that is not session limited)
 
     v0.24.1
       Changelog:
@@ -952,154 +963,176 @@ components:
                   - trans
               race:
                 description: The races or ethnicities the provider identifies with
-                type: string
-                enum:
-                  - american_indian_or_alaska_native
-                  - asian
-                  - biracial_or_multiracial
-                  - black_or_african_american
-                  - caucasian_or_white
-                  - hispanic_or_latinx
-                  - middle_eastern
-                  - native_hawaiian_or_other_pacific_islander
-                  - other
-                  - prefer_not_to_respond
-                  - south_east_asian
+                oneOf:
+                  - const: american_indian_or_alaska_native
+                  - const: asian
+                  - const: biracial_or_multiracial
+                  - const: black_or_african_american
+                  - const: caucasian_or_white
+                  - const: hispanic_or_latinx
+                  - const: middle_eastern
+                  - const: native_hawaiian_or_other_pacific_islander
+                  - const: prefer_not_to_respond
+                  - const: south_east_asian
+                  - const: other
+                    deprecated: true
+                    description: DEPRECATED
               language:
                 description: The languages spoken by the provider
-                type: string
-                enum:
-                  - afrikaans
-                  - arabic
-                  - armenian
-                  - asl
-                  - bengali
-                  - bosnian
-                  - cantonese
-                  - chinese
-                  - czech
-                  - dutch
-                  - english
-                  - farsi
-                  - filipino
-                  - french
-                  - german
-                  - greek
-                  - haitian_creole
-                  - hebrew
-                  - hindi
-                  - hmong
-                  - hungarian
-                  - indonesian
-                  - iranian
-                  - italian
-                  - japanese
-                  - javanese
-                  - korean
-                  - not_listed
-                  - norwegian
-                  - other
-                  - patois
-                  - polish
-                  - portuguese
-                  - punjabi
-                  - romanian
-                  - russian
-                  - spanish
-                  - swahili
-                  - swedish
-                  - thai
-                  - turkish
-                  - ukrainian
-                  - urdu
-                  - vietnamese
-                  - yoruba
+                oneOf:
+                  - const: afrikaans
+                  - const: arabic
+                  - const: armenian
+                  - const: asl
+                  - const: bengali
+                  - const: bosnian
+                  - const: cantonese
+                  - const: chinese
+                  - const: czech
+                  - const: dutch
+                  - const: english
+                  - const: farsi
+                  - const: filipino
+                  - const: french
+                  - const: german
+                  - const: greek
+                  - const: haitian_creole
+                  - const: hebrew
+                  - const: hindi
+                  - const: hmong
+                  - const: hungarian
+                  - const: indonesian
+                  - const: iranian
+                  - const: italian
+                  - const: japanese
+                  - const: javanese
+                  - const: korean
+                  - const: norwegian
+                  - const: patois
+                  - const: polish
+                  - const: portuguese
+                  - const: punjabi
+                  - const: romanian
+                  - const: russian
+                  - const: spanish
+                  - const: suzhou
+                  - const: swahili
+                  - const: swedish
+                  - const: thai
+                  - const: turkish
+                  - const: ukrainian
+                  - const: urdu
+                  - const: vietnamese
+                  - const: yoruba
+                  - const: not_listed
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: other
+                    deprecated: true
+                    description: DEPRECATED
               specialization:
                 description: The specializations the provider has
-                type: string
-                enum:
-                  - addiction
-                  - adhd
-                  - adoption
-                  - aging
-                  - alcohol_use
-                  - alzheimers
-                  - anger_management
-                  - antisocial_personality
-                  - anxiety
-                  - autism_or_aspergers
-                  - behavioral_issues
-                  - bipolar_disorder
-                  - borderline_personality
-                  - career_counseling
-                  - child_abuse_or_neglect
-                  - chronic_illness
-                  - chronic_impulsivity
-                  - chronic_pain
-                  - chronic_relapse
-                  - codependency
-                  - coping_skills
-                  - cultural_stress
-                  - depersonalization_derealization
-                  - depression
-                  - developmental_disorders
-                  - dissociative_disorders
-                  - divorce
-                  - domestic_violence
-                  - drug_abuse
-                  - eating_disorders
-                  - family_conflict
-                  - gambling
-                  - gender_identity
-                  - grief
-                  - hoarding
-                  - impulse_control_disorders
-                  - impulsivity
-                  - infertility
-                  - infidelity
-                  - intellectual_disability
-                  - internet_addiction
-                  - job_stress
-                  - learning_disabilities
-                  - legal_stress
-                  - lgbtqia
-                  - life_transitions
-                  - mens_issues
-                  - military_and_veterans
-                  - mood_disorders
-                  - obsessive_compulsive
-                  - older_adult
-                  - oppositional_defiance
-                  - panic_attacks
-                  - parenting
-                  - peer_relationships
-                  - personality_disorders
-                  - pregnancy_prenatal_postpartum
-                  - psychosis
-                  - racial_identity
-                  - racial_trauma
-                  - relapse_prevention
-                  - relationship_issues
-                  - schizophrenia
-                  - school_issues
-                  - self_esteem
-                  - self_harming
-                  - sex_therapy
-                  - sexual_abuse
-                  - sexual_addiction
-                  - sleep_or_insomnia
-                  - spirituality
-                  - sports_performance
-                  - stress
-                  - substance_use
-                  - suicidal_ideation
-                  - thought_disorders
-                  - transgender_issues
-                  - trauma_and_ptsd
-                  - traumatic_brain_injury
-                  - video_game_addiction
-                  - weight_loss
-                  - womens_issues
+                oneOf:
+                  - const: addiction
+                    description: General addiction
+                  - const: adhd
+                  - const: adoption
+                  - const: aging
+                  - const: alcohol_use
+                  - const: alzheimers
+                  - const: anger_management
+                  - const: antisocial_personality
+                  - const: anxiety
+                  - const: autism_or_aspergers
+                  - const: behavioral_issues
+                  - const: bipolar_disorder
+                  - const: borderline_personality
+                  - const: career_counseling
+                  - const: child_abuse_or_neglect
+                  - const: chronic_illness
+                  - const: chronic_pain
+                  - const: codependency
+                  - const: coping_skills
+                  - const: cultural_stress
+                  - const: depersonalization_derealization
+                  - const: depression
+                  - const: developmental_disorders
+                  - const: dissociative_disorders
+                  - const: divorce
+                  - const: domestic_violence
+                  - const: eating_disorders
+                  - const: family_conflict
+                  - const: first_responders
+                  - const: gambling
+                  - const: gender_identity
+                  - const: grief
+                  - const: hoarding
+                  - const: impulse_control_disorders
+                  - const: infertility
+                  - const: infidelity
+                  - const: intellectual_disability
+                  - const: internet_addiction
+                  - const: learning_disabilities
+                  - const: lgbtqia
+                  - const: life_transitions
+                  - const: mens_issues
+                  - const: mood_disorders
+                  - const: obsessive_compulsive
+                  - const: older_adult
+                  - const: oppositional_defiance
+                  - const: panic_attacks
+                  - const: parenting
+                  - const: peer_relationships
+                  - const: personality_disorders
+                  - const: pregnancy_prenatal_postpartum
+                  - const: psychosis
+                  - const: racial_identity
+                  - const: relapse_prevention
+                  - const: relationship_issues
+                  - const: schizophrenia
+                  - const: school_issues
+                  - const: self_esteem
+                  - const: self_harming
+                  - const: sex_therapy
+                  - const: sexual_abuse
+                  - const: sexual_addiction
+                  - const: sleep_or_insomnia
+                  - const: spirituality
+                  - const: sports_performance
+                  - const: stress
+                  - const: substance_use
+                  - const: suicidal_ideation
+                  - const: thought_disorders
+                  - const: transgender_issues
+                  - const: trauma_and_ptsd
+                  - const: traumatic_brain_injury
+                  - const: video_game_addiction
+                  - const: weight_loss
+                  - const: womens_issues
+                  - const: chronic_impulsivity
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: chronic_relapse
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: drug_abuse
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: impulsivity
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: job_stress
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: legal_stress
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: military_and_veterans
+                    deprecated: true
+                    description: DEPRECATED
+                  - const: racial_trauma
+                    deprecated: true
+                    description: DEPRECATED
               modality:
                 description: The therapeutic modalities the provider practices
                 type: string
