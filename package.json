@@ -14,7 +14,7 @@
     "generate:client": "pnpm --filter @partner-scheduling-demo/api-client generate && biome format --write packages/api-client/src/generated.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.4",
+    "@biomejs/biome": "^2.5.0",
     "turbo": "^2.9.14",
     "typescript": "~6.0.3"
   },
