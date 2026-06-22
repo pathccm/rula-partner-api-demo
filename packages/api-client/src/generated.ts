@@ -560,6 +560,11 @@ export interface components {
             /** Format: email */
             email: string
             phone_number: string
+            /**
+             * @description The type of guardianship. Defaults to `parent` if not provided. `parent` — a biological or adoptive parent or legal guardian acting in a parental role. `medical` — a person with medical decision-making authority who is not a parent (e.g. healthcare proxy, court-appointed medical guardian).
+             * @enum {string}
+             */
+            guardian_type?: 'parent' | 'medical'
           }
           /** @description The types of care the patient is seeking. Determines what appointment types can be booked for this patient. */
           care_types: ('Individual' | 'Couples' | 'Family' | 'Psychiatry')[]
@@ -695,10 +700,7 @@ export interface components {
             | 'non_binary'
             | 'prefer_not_to_respond'
             | 'trans'
-          /**
-           * @description The races or ethnicities the provider identifies with
-           * @enum {string}
-           */
+          /** @description The races or ethnicities the provider identifies with */
           race?:
             | 'american_indian_or_alaska_native'
             | 'asian'
@@ -708,13 +710,10 @@ export interface components {
             | 'hispanic_or_latinx'
             | 'middle_eastern'
             | 'native_hawaiian_or_other_pacific_islander'
-            | 'other'
             | 'prefer_not_to_respond'
             | 'south_east_asian'
-          /**
-           * @description The languages spoken by the provider
-           * @enum {string}
-           */
+            | 'other'
+          /** @description The languages spoken by the provider */
           language?:
             | 'afrikaans'
             | 'arabic'
@@ -743,9 +742,7 @@ export interface components {
             | 'japanese'
             | 'javanese'
             | 'korean'
-            | 'not_listed'
             | 'norwegian'
-            | 'other'
             | 'patois'
             | 'polish'
             | 'portuguese'
@@ -753,6 +750,7 @@ export interface components {
             | 'romanian'
             | 'russian'
             | 'spanish'
+            | 'suzhou'
             | 'swahili'
             | 'swedish'
             | 'thai'
@@ -761,10 +759,9 @@ export interface components {
             | 'urdu'
             | 'vietnamese'
             | 'yoruba'
-          /**
-           * @description The specializations the provider has
-           * @enum {string}
-           */
+            | 'not_listed'
+            | 'other'
+          /** @description The specializations the provider has */
           specialization?:
             | 'addiction'
             | 'adhd'
@@ -782,9 +779,7 @@ export interface components {
             | 'career_counseling'
             | 'child_abuse_or_neglect'
             | 'chronic_illness'
-            | 'chronic_impulsivity'
             | 'chronic_pain'
-            | 'chronic_relapse'
             | 'codependency'
             | 'coping_skills'
             | 'cultural_stress'
@@ -794,26 +789,22 @@ export interface components {
             | 'dissociative_disorders'
             | 'divorce'
             | 'domestic_violence'
-            | 'drug_abuse'
             | 'eating_disorders'
             | 'family_conflict'
+            | 'first_responders'
             | 'gambling'
             | 'gender_identity'
             | 'grief'
             | 'hoarding'
             | 'impulse_control_disorders'
-            | 'impulsivity'
             | 'infertility'
             | 'infidelity'
             | 'intellectual_disability'
             | 'internet_addiction'
-            | 'job_stress'
             | 'learning_disabilities'
-            | 'legal_stress'
             | 'lgbtqia'
             | 'life_transitions'
             | 'mens_issues'
-            | 'military_and_veterans'
             | 'mood_disorders'
             | 'obsessive_compulsive'
             | 'older_adult'
@@ -825,7 +816,6 @@ export interface components {
             | 'pregnancy_prenatal_postpartum'
             | 'psychosis'
             | 'racial_identity'
-            | 'racial_trauma'
             | 'relapse_prevention'
             | 'relationship_issues'
             | 'schizophrenia'
@@ -848,6 +838,14 @@ export interface components {
             | 'video_game_addiction'
             | 'weight_loss'
             | 'womens_issues'
+            | 'chronic_impulsivity'
+            | 'chronic_relapse'
+            | 'drug_abuse'
+            | 'impulsivity'
+            | 'job_stress'
+            | 'legal_stress'
+            | 'military_and_veterans'
+            | 'racial_trauma'
           /**
            * @description The therapeutic modalities the provider practices
            * @enum {string}

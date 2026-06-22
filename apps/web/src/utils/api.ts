@@ -25,7 +25,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-// Types aligned to the partner-scheduling-api spec (v0.24.0)
+// Types aligned to the partner-scheduling-api spec (v0.25.1)
 
 export interface Insurance {
   id: string
@@ -76,6 +76,8 @@ export interface Slot {
   start_time_iso: string
   duration_mins: number
   location: 'in_person' | 'telemedicine'
+  /** Whether the slot is for a first appointment or a subsequent session */
+  series_type?: 'initial' | 'followup'
 }
 
 export interface Patient {
@@ -144,6 +146,7 @@ export const api = {
       | 'Romanian'
       | 'Russian'
       | 'Spanish'
+      | 'Suzhou'
       | 'Swahili'
       | 'Swedish'
       | 'Tagalog'
@@ -204,6 +207,7 @@ export const api = {
       | 'Drug Abuse'
       | 'Eating Disorders'
       | 'Family Conflict'
+      | 'First Responders'
       | 'Gambling'
       | 'Gender Identity'
       | 'Grief'
