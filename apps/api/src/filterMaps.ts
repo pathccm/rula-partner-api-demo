@@ -34,6 +34,7 @@ export const LANGUAGE_MAP: Record<string, string> = {
   Romanian: 'romanian',
   Russian: 'russian',
   Spanish: 'spanish',
+  Suzhou: 'suzhou',
   Swahili: 'swahili',
   Swedish: 'swedish',
   Tagalog: 'filipino',
@@ -73,6 +74,10 @@ export const RACE_MAP: Record<string, string> = {
   'South East Asian': 'south_east_asian',
 }
 
+// Maps UI specialization labels to the API's short lowercase keys.
+// Deprecated as of spec v0.25.1 (still accepted, no longer supported for filtering):
+// chronic_impulsivity, chronic_relapse, drug_abuse, impulsivity, job_stress,
+// legal_stress, military_and_veterans, racial_trauma.
 export const SPECIALIZATION_MAP: Record<string, string> = {
   Addiction: 'addiction',
   ADHD: 'adhd',
@@ -105,6 +110,7 @@ export const SPECIALIZATION_MAP: Record<string, string> = {
   'Drug Abuse': 'drug_abuse',
   'Eating Disorders': 'eating_disorders',
   'Family Conflict': 'family_conflict',
+  'First Responders': 'first_responders',
   Gambling: 'gambling',
   'Gender Identity': 'gender_identity',
   Grief: 'grief',
