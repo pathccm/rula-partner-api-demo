@@ -1,11 +1,23 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 0.25.1
+  version: 0.25.4
   description: >
     Rula's API for partners. This API is currently a WIP and may change at any time.
 
     Updates:
+
+    v0.25.4
+      Changelog:
+        + Updated the production URL to match the actual deployed production URL
+
+    v0.25.3
+      Changelog:
+        + Added optional secondary_insurance to POST /v1/providers/search to filter by a second insurance carrier
+
+    v0.25.2
+      Changelog:
+        + Added npi field to GET /v1/providers/{uuid} response
 
     v0.25.1
       Changelog:
@@ -237,12 +249,12 @@ info:
         + Removed aptientSurveysIndex (not slated for initial release)
 
 servers:
-  # - url: https://api.prod.rula.com/edge/partner-scheduling-api-prod
-  #   description: The proposed production API URL
-  #   x-internal: false
-  - url: https://api.prod.rula.com/edge/partner-scheduling-api-server-staging
-    description: The staging API URL
+  - url: https://api.prod.rula.com/edge/partner-scheduling-api-server-production
+    description: The production API URL
     x-internal: false
+  # - url: https://api.prod.rula.com/edge/partner-scheduling-api-server-staging
+  #   description: The staging API URL
+  #   x-internal: false
   # - url: http://localhost:3000
   #   description: Local development URL
   #   x-internal: true
@@ -936,6 +948,13 @@ components:
                 description: Insurance network accepted by the provider. Must match the
                   network_name value returned from the GET /insurances
                   endpoint. The value is case-insensitive.
+                type: string
+              secondary_insurance:
+                description: A second insurance network the provider must also accept.
+                  When provided, only providers that accept both insurance and
+                  secondary_insurance are returned. Must match the network_name
+                  value returned from the GET /insurances endpoint. The value is
+                  case-insensitive.
                 type: string
               coverage_type:
                 description: The coverage type of the insurance accepted by the provider
@@ -1641,6 +1660,11 @@ components:
                 type: array
                 items:
                   type: string
+              npi:
+                description: National Provider Identifier
+                type: string
+                nullable: true
+                example: "1234567890"
             required:
               - id
               - first_name
