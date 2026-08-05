@@ -12,6 +12,15 @@ import type {
 } from '../utils/api'
 import { api } from '../utils/api'
 import { type ErrorInfo, getErrorInfo } from '../utils/errorMessage'
+import {
+  ALLYSHIP_OPTIONS,
+  FAITH_OPTIONS,
+  GENDER_OPTIONS,
+  LANGUAGE_OPTIONS,
+  LICENSE_OPTIONS,
+  RACE_OPTIONS,
+  SPECIALIZATION_OPTIONS,
+} from '../utils/options'
 
 type Step =
   | 'careType'
@@ -36,104 +45,6 @@ const LOCATION_TYPES = [
 ]
 
 const US_STATES = ['CA', 'MB', 'TN']
-
-const LANGUAGE_OPTIONS = [
-  'English',
-  'Spanish',
-  'Mandarin',
-  'Cantonese',
-  'Tagalog',
-  'Vietnamese',
-  'Arabic',
-  'French',
-  'Korean',
-  'Russian',
-  'Hindi',
-  'Portuguese',
-  'Hmong',
-  'Farsi',
-  'Armenian',
-  'ASL',
-  'Bengali',
-  'Punjabi',
-  'Japanese',
-  'Urdu',
-  'Haitian Creole',
-  'Polish',
-  'Italian',
-  'German',
-  'Bosnian',
-  'Ukrainian',
-  'Romanian',
-  'Greek',
-  'Turkish',
-  'Hebrew',
-  'Swahili',
-  'Yoruba',
-  'Thai',
-  'Indonesian',
-  'Javanese',
-  'Dutch',
-  'Hungarian',
-  'Czech',
-  'Swedish',
-  'Norwegian',
-  'Afrikaans',
-  'Patois',
-  'Iranian',
-  'Other',
-  "My selection isn't listed",
-] as const
-
-const GENDER_OPTIONS = [
-  'Female',
-  'Male',
-  'Trans',
-  'Non-binary',
-  'Gender fluid',
-  'Agender',
-  'Bigender',
-  'Cis',
-  "My gender isn't listed",
-  'Prefer not to respond',
-] as const
-
-const RACE_OPTIONS = [
-  'American Indian or Alaska Native',
-  'Asian',
-  'Biracial or Multiracial',
-  'Black or African American',
-  'Caucasian or White',
-  'Hispanic or Latinx',
-  'Middle Eastern',
-  'Native Hawaiian or Other Pacific Islander',
-  'South East Asian',
-  'Other',
-  'Prefer Not to Respond',
-] as const
-
-const SPECIALIZATION_OPTIONS = [
-  'Anxiety',
-  'Depression',
-  'Trauma and PTSD',
-  'Relationship Issues',
-  'Grief',
-  'ADHD',
-  'Bipolar Disorder',
-  'Eating Disorders',
-  'LGBTQIA+',
-  'Life Transitions',
-  'Addiction',
-  'Anger Management',
-  'Coping Skills',
-  'Family Conflict',
-  'Self Esteem',
-  'Stress',
-  'Sleep or Insomnia',
-  'Chronic Illness',
-  'Chronic Pain',
-  'Pregnancy, Prenatal, Postpartum',
-] as const
 
 const PROVIDERS_PER_PAGE = 10
 
@@ -278,6 +189,11 @@ export function SchedulingPage() {
   const [filterSpecializations, setFilterSpecializations] = useState<
     Array<(typeof SPECIALIZATION_OPTIONS)[number]>
   >([])
+  const [filterFaiths, setFilterFaiths] = useState<Array<(typeof FAITH_OPTIONS)[number]>>([])
+  const [filterAllyships, setFilterAllyships] = useState<Array<(typeof ALLYSHIP_OPTIONS)[number]>>(
+    [],
+  )
+  const [filterLicenses, setFilterLicenses] = useState<Array<(typeof LICENSE_OPTIONS)[number]>>([])
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null)
 
   // Step 4 — Provider results
@@ -353,6 +269,9 @@ export function SchedulingPage() {
     gender?: SearchProviderParams['gender']
     race?: SearchProviderParams['race']
     specialization?: SearchProviderParams['specialization']
+    faith?: SearchProviderParams['faith']
+    allyship?: SearchProviderParams['allyship']
+    license?: SearchProviderParams['license']
   }) {
     setError(null)
     setLoading(true)
@@ -487,6 +406,9 @@ export function SchedulingPage() {
     setFilterGenders([])
     setFilterRaces([])
     setFilterSpecializations([])
+    setFilterFaiths([])
+    setFilterAllyships([])
+    setFilterLicenses([])
     setExpandedFilter(null)
     setProviders([])
     setSelectedProvider(null)
@@ -794,6 +716,48 @@ export function SchedulingPage() {
             />
           </div>
 
+          <div className="filter-section">
+            <h3 className="filter-section-label">Faith</h3>
+            <FilterChipGroup
+              id="faith"
+              options={FAITH_OPTIONS}
+              selected={filterFaiths}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) =>
+                setFilterFaiths((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
+              }
+            />
+          </div>
+
+          <div className="filter-section">
+            <h3 className="filter-section-label">Allyship</h3>
+            <FilterChipGroup
+              id="allyship"
+              options={ALLYSHIP_OPTIONS}
+              selected={filterAllyships}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) =>
+                setFilterAllyships((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
+              }
+            />
+          </div>
+
+          <div className="filter-section">
+            <h3 className="filter-section-label">License type</h3>
+            <FilterChipGroup
+              id="license"
+              options={LICENSE_OPTIONS}
+              selected={filterLicenses}
+              expandedId={expandedFilter}
+              onExpand={setExpandedFilter}
+              onToggle={(v) =>
+                setFilterLicenses((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
+              }
+            />
+          </div>
+
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
             <button
               type="button"
@@ -806,6 +770,9 @@ export function SchedulingPage() {
                   race: filterRaces[0] as SearchProviderParams['race'],
                   specialization:
                     filterSpecializations[0] as SearchProviderParams['specialization'],
+                  faith: filterFaiths[0] as SearchProviderParams['faith'],
+                  allyship: filterAllyships[0] as SearchProviderParams['allyship'],
+                  license: filterLicenses[0] as SearchProviderParams['license'],
                 })
               }
             >
@@ -819,6 +786,9 @@ export function SchedulingPage() {
                 setFilterGenders([])
                 setFilterRaces([])
                 setFilterSpecializations([])
+                setFilterFaiths([])
+                setFilterAllyships([])
+                setFilterLicenses([])
                 void handleApplyFilters()
               }}
             >

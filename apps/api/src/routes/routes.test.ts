@@ -82,6 +82,28 @@ describe('read routes (proxy to partner API when USE_MOCK_API=false)', () => {
     await app.close()
   })
 
+  it('POST /v1/providers/search maps faith, allyship, and license labels to API keys', async () => {
+    mockRequest.mockResolvedValueOnce({ providers: [] })
+    const app = await buildApp()
+    await app.inject({
+      method: 'POST',
+      url: '/v1/providers/search',
+      payload: {
+        two_letter_state: 'CA',
+        faith: 'Christian',
+        allyship: 'Military/Veterans',
+        license: 'LCSW',
+      },
+    })
+    const forwarded = JSON.parse(mockRequest.mock.calls[0][1]?.body as string)
+    expect(forwarded).toMatchObject({
+      faith: 'christian',
+      allyship: 'military',
+      license: 'lcsw',
+    })
+    await app.close()
+  })
+
   it('GET /v1/providers/slots proxies to partner API', async () => {
     mockRequest.mockResolvedValueOnce({
       slots: [

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../utils/api'
@@ -206,11 +206,14 @@ describe('SchedulingPage — step 3: provider preferences', () => {
     expect(screen.getByText('Any preferences for your provider?')).toBeInTheDocument()
   })
 
-  it('shows gender, race, and specialization filter sections', async () => {
+  it('shows gender, race, specialization, faith, allyship, and license filter sections', async () => {
     await selectInsurance('Aetna')
     expect(screen.getByText('Gender')).toBeInTheDocument()
     expect(screen.getByText('Race / ethnicity')).toBeInTheDocument()
     expect(screen.getByText('Specialization')).toBeInTheDocument()
+    expect(screen.getByText('Faith')).toBeInTheDocument()
+    expect(screen.getByText('Allyship')).toBeInTheDocument()
+    expect(screen.getByText('License type')).toBeInTheDocument()
   })
 
   it('can select and deselect a gender filter', async () => {
@@ -223,9 +226,12 @@ describe('SchedulingPage — step 3: provider preferences', () => {
 
   it('can select multiple specializations', async () => {
     await selectInsurance('Aetna')
-    // expand specialization section so all options are visible
-    const moreBtns = screen.getAllByText(/\+\d+ more/)
-    await userEvent.click(moreBtns[moreBtns.length - 1])
+    // expand the specialization section so all options are visible
+    const specializationSection = screen
+      .getByText('Specialization')
+      .closest<HTMLElement>('.filter-section')
+    if (!specializationSection) throw new Error('specialization section not found')
+    await userEvent.click(within(specializationSection).getByText(/\+\d+ more/))
     await userEvent.click(screen.getByText('Anxiety'))
     await userEvent.click(screen.getByText('Grief'))
     expect(screen.getByText('Anxiety').closest('button')).toHaveClass('selected')
@@ -246,6 +252,19 @@ describe('SchedulingPage — step 3: provider preferences', () => {
     await waitFor(() => {
       expect(mockApi.searchProviders).toHaveBeenCalledWith(
         expect.objectContaining({ gender: 'Female' }),
+      )
+    })
+  })
+
+  it('calls searchProviders with faith, allyship, and license filters when selected', async () => {
+    await selectInsurance('Aetna')
+    await userEvent.click(screen.getByText('Christian'))
+    await userEvent.click(screen.getByText('BIPOC'))
+    await userEvent.click(screen.getByText('LCSW'))
+    await userEvent.click(screen.getByText('Find providers'))
+    await waitFor(() => {
+      expect(mockApi.searchProviders).toHaveBeenCalledWith(
+        expect.objectContaining({ faith: 'Christian', allyship: 'BIPOC', license: 'LCSW' }),
       )
     })
   })
