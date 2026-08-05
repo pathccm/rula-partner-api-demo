@@ -1,11 +1,33 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 0.25.4
+  version: 0.26.1
   description: >
     Rula's API for partners. This API is currently a WIP and may change at any time.
 
     Updates:
+
+    v0.26.1
+      Changelog:
+        + GET /v1/providers/slots now filters out slots inside the 25-hour minimum booking window instead of rejecting the request
+        + A start_time_range starting less than 25 hours from now returns 200 with only bookable slots (an empty array if none remain), rather than a 422 error
+
+    v0.26.0
+      Changelog:
+        + Added optional channel field to POST /v1/patients and POST /v1/appointment
+
+    v0.25.7
+      Changelog:
+        + Added license filter to POST /v1/providers/search request
+        + Added licenses to the GET /v1/providers/{uuid} response
+
+    v0.25.6
+      Changelog:
+        + Added faith and allyship filters to POST /v1/providers/search request
+
+    v0.25.5
+      Changelog:
+        + Added faiths and allyships to GET /v1/providers/{uuid} response
 
     v0.25.4
       Changelog:
@@ -401,7 +423,7 @@ paths:
           in: query
           name: start_time_range
           required: false
-          description: A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced, but start cannot be less than 25 hours from now, as this is outside of the bookable range.
+          description: A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 28 days out. No maximum window is enforced. Slots that start less than 25 hours from now are outside the bookable range and are omitted from the results; a range that falls entirely inside that window returns an empty slots array rather than an error.
         - schema:
             type: array
             uniqueItems: true
@@ -721,6 +743,9 @@ components:
                   - is_virtual
                   - appointment_type
                   - two_letter_state
+              channel:
+                type: string
+                description: An optional channel to attribute this appointment to
             required:
               - patient_id
               - provider_id
@@ -885,6 +910,9 @@ components:
                         type: string
                         minLength: 1
                         description: Subscriber id of the insurance
+              channel:
+                type: string
+                description: An optional channel to attribute this patient to
             allOf:
               - if:
                   properties:
@@ -1223,6 +1251,165 @@ components:
                     description: Couples therapy
                   - const: families
                     description: Family therapy
+              faith:
+                description: The religious or faith affiliation to filter providers by
+                oneOf:
+                  - const: agnostic
+                    description: Agnostic
+                  - const: atheist
+                    description: Atheist
+                  - const: buddhist
+                    description: Buddhist
+                  - const: christian
+                    description: Christian
+                  - const: hindu
+                    description: Hindu
+                  - const: interfaith
+                    description: Interfaith
+                  - const: jehovahs_witness
+                    description: Jehovah's Witness
+                  - const: jewish
+                    description: Jewish
+                  - const: mormon
+                    description: Mormon
+                  - const: muslim
+                    description: Muslim
+                  - const: non_denominational
+                    description: Non-denominational
+                  - const: pagan
+                    description: Pagan
+                  - const: satanist
+                    description: Satanist
+                  - const: sikh
+                    description: Sikh
+                  - const: spiritual
+                    description: Spiritual
+                  - const: taoist
+                    description: Taoist
+                  - const: unitarian_universalism
+                    description: Unitarian Universalism
+                  - const: wiccan
+                    description: Wiccan
+                  - const: other
+                    description: Other
+                  - const: prefer_not_to_respond
+                    description: Prefer not to respond
+              allyship:
+                description: The allyship to filter providers by
+                oneOf:
+                  - const: aviation
+                    description: Aviation Professionals
+                  - const: bipoc
+                    description: BIPOC
+                  - const: blind
+                    description: Blind
+                  - const: body_positivity
+                    description: Body Positivity
+                  - const: cancer
+                    description: Cancer
+                  - const: deaf
+                    description: Deaf
+                  - const: educators
+                    description: Educators
+                  - const: first_generation
+                    description: First Gen American/Immigrant Parents
+                  - const: first_responder
+                    description: Police/Fire/First Responders
+                  - const: gay
+                    description: Gay
+                  - const: hiv_aids
+                    description: HIV/AIDS
+                  - const: immune_disorders
+                    description: Immune-Disorders
+                  - const: intersex
+                    description: Intersex
+                  - const: lesbian
+                    description: Lesbian
+                  - const: lgbtqia
+                    description: LGBTQIA+
+                  - const: little_person
+                    description: Little Person
+                  - const: military
+                    description: Military/Veterans
+                  - const: non_binary
+                    description: Non-Binary
+                  - const: non_monogamy
+                    description: Open Relationships/Non-Monogamy
+                  - const: queer
+                    description: Queer
+                  - const: racial_justice
+                    description: Racial Justice
+                  - const: recovery
+                    description: Recovery/12 Step Friendly
+                  - const: sex_positive
+                    description: Sex-Positive/Kink
+                  - const: sex_worker
+                    description: Sex Worker
+                  - const: single_mother
+                    description: Single Mother
+                  - const: transgender
+                    description: Transgender
+                  - const: vegan
+                    description: Vegan
+              license:
+                description: The provider's license type to filter by (e.g. "lcsw", "lmft").
+                oneOf:
+                  - const: acd-lac
+                    description: Licensed Addiction Counselor (ACD-LAC)
+                  - const: csw-pip
+                    description: Licensed Independent Clinical Social Worker (CSW-PIP)
+                  - const: do
+                    description: Doctor of Osteopathy (DO)
+                  - const: imft
+                    description: Licensed Independent Marriage and Family Therapist (IMFT)
+                  - const: lcmft
+                    description: Licensed Clinical Marriage and Family Therapist (LCMFT)
+                  - const: lcmhc
+                    description: Licensed Clinical Mental Health Counselor (LCMHC)
+                  - const: lcp
+                    description: Licensed Clinical Psychologist (LCP)
+                  - const: lcpc
+                    description: Licensed Clinical Professional Counselor (LCPC)
+                  - const: lcsw
+                    description: Licensed Clinical Social Worker (LCSW)
+                  - const: lcsw-c
+                    description: Licensed Certified Social Worker - Clinical (LCSW-C)
+                  - const: licsw
+                    description: Licensed Independent Clinical Social Worker (LICSW)
+                  - const: limhp
+                    description: Licensed Independent Mental Health Practitioner (LIMHP)
+                  - const: lisw
+                    description: Licensed Independent Social Worker (LISW)
+                  - const: lisw-cp
+                    description: Licensed Independent Social Worker - Clinical Practice (LISW-CP)
+                  - const: lisw-s
+                    description: Licensed Independent Social Worker - Supervisor (LISW-S)
+                  - const: lmft
+                    description: Licensed Marriage and Family Therapist (LMFT)
+                  - const: lmhc
+                    description: Licensed Mental Health Counselor (LMHC)
+                  - const: lmsw-c
+                    description: Licensed Master Social Worker - Clinical (LMSW-C)
+                  - const: lp
+                    description: Licensed Psychologist (LP)
+                  - const: lpc
+                    description: Licensed Professional Counselor (LPC)
+                  - const: lpc-i
+                    description: Licensed Professional Counselor (LPC-I)
+                  - const: lpcc
+                    description: Licensed Professional Clinical Counselor (LPCC)
+                  - const: lpcc-s
+                    description: Licensed Professional Clinical Counselor with Supervision Designation (LPCC-S)
+                  - const: lpcmh
+                    description: Licensed Professional Counselor of Mental Health (LPCMH)
+                  - const: lpcs
+                    description: Licensed Professional Counselor Supervisor (LPCS)
+                  - const: lscsw
+                    description: Licensed Specialist Clinical Social Worker (LSCSW)
+                  - const: md
+                    description: Medical Doctor (MD)
+                  - const: np
+                    description: Nurse Practitioner (NP)
               location_type:
                 description: The types of locations where the provider offers service
                 type: string
@@ -1657,6 +1844,21 @@ components:
                   type: string
               modalities:
                 description: The therapeutic modalities practiced by the provider
+                type: array
+                items:
+                  type: string
+              faiths:
+                description: The religious or faith affiliations of the provider
+                type: array
+                items:
+                  type: string
+              allyships:
+                description: The allyships of the provider
+                type: array
+                items:
+                  type: string
+              licenses:
+                description: The provider's license types (e.g. "lcsw", "lmft").
                 type: array
                 items:
                   type: string
