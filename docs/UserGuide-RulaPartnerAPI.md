@@ -171,7 +171,7 @@ Returns available appointment slots for a specific provider.
 | `provider_uuid`    | Yes      | UUID of the provider                                                                                                                                        |
 | `two_letter_state` | Yes      | State code (e.g. `"CA"`)                                                                                                                                    |
 | `location_type`    | Yes      | One or more values: `telemedicine`, `in_person` (repeat param for multiple)                                                                                 |
-| `start_time_range` | No       | Two-element array of ISO 8601 UTC datetimes `[start, end]`. Start cannot be less than 25 hours from now. Defaults to 25 hours from now through 28 days out. |
+| `start_time_range` | No       | Two-element array of ISO 8601 UTC datetimes `[start, end]`. Slots less than 25 hours from now are omitted; an all-past range returns an empty array.        |
 
 **Request:**
 

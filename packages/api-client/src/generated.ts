@@ -426,6 +426,17 @@ export interface components {
           specializations?: string[]
           /** @description The therapeutic modalities practiced by the provider */
           modalities?: string[]
+          /** @description The religious or faith affiliations of the provider */
+          faiths?: string[]
+          /** @description The allyships of the provider */
+          allyships?: string[]
+          /** @description The provider's license types (e.g. "lcsw", "lmft"). */
+          licenses?: string[]
+          /**
+           * @description National Provider Identifier
+           * @example 1234567890
+           */
+          npi?: string | null
         }
       }
     }
@@ -504,6 +515,8 @@ export interface components {
             /** @description The two letter state code where the appointment will take place */
             two_letter_state: string
           }
+          /** @description An optional channel to attribute this appointment to */
+          channel?: string
         }
       }
     }
@@ -593,6 +606,8 @@ export interface components {
               subscriber_id: string
             }
           }
+          /** @description An optional channel to attribute this patient to */
+          channel?: string
         } & (unknown & unknown & unknown)
       }
     }
@@ -674,6 +689,8 @@ export interface components {
           care_category?: 'therapy' | 'psychiatry'
           /** @description Insurance network accepted by the provider. Must match the network_name value returned from the GET /insurances endpoint. The value is case-insensitive. */
           insurance?: string
+          /** @description A second insurance network the provider must also accept. When provided, only providers that accept both insurance and secondary_insurance are returned. Must match the network_name value returned from the GET /insurances endpoint. The value is case-insensitive. */
+          secondary_insurance?: string
           /**
            * @description The coverage type of the insurance accepted by the provider
            * @enum {string}
@@ -910,6 +927,87 @@ export interface components {
             | 'individuals'
             | 'couples'
             | 'families'
+          /** @description The religious or faith affiliation to filter providers by */
+          faith?:
+            | 'agnostic'
+            | 'atheist'
+            | 'buddhist'
+            | 'christian'
+            | 'hindu'
+            | 'interfaith'
+            | 'jehovahs_witness'
+            | 'jewish'
+            | 'mormon'
+            | 'muslim'
+            | 'non_denominational'
+            | 'pagan'
+            | 'satanist'
+            | 'sikh'
+            | 'spiritual'
+            | 'taoist'
+            | 'unitarian_universalism'
+            | 'wiccan'
+            | 'other'
+            | 'prefer_not_to_respond'
+          /** @description The allyship to filter providers by */
+          allyship?:
+            | 'aviation'
+            | 'bipoc'
+            | 'blind'
+            | 'body_positivity'
+            | 'cancer'
+            | 'deaf'
+            | 'educators'
+            | 'first_generation'
+            | 'first_responder'
+            | 'gay'
+            | 'hiv_aids'
+            | 'immune_disorders'
+            | 'intersex'
+            | 'lesbian'
+            | 'lgbtqia'
+            | 'little_person'
+            | 'military'
+            | 'non_binary'
+            | 'non_monogamy'
+            | 'queer'
+            | 'racial_justice'
+            | 'recovery'
+            | 'sex_positive'
+            | 'sex_worker'
+            | 'single_mother'
+            | 'transgender'
+            | 'vegan'
+          /** @description The provider's license type to filter by (e.g. "lcsw", "lmft"). */
+          license?:
+            | 'acd-lac'
+            | 'csw-pip'
+            | 'do'
+            | 'imft'
+            | 'lcmft'
+            | 'lcmhc'
+            | 'lcp'
+            | 'lcpc'
+            | 'lcsw'
+            | 'lcsw-c'
+            | 'licsw'
+            | 'limhp'
+            | 'lisw'
+            | 'lisw-cp'
+            | 'lisw-s'
+            | 'lmft'
+            | 'lmhc'
+            | 'lmsw-c'
+            | 'lp'
+            | 'lpc'
+            | 'lpc-i'
+            | 'lpcc'
+            | 'lpcc-s'
+            | 'lpcmh'
+            | 'lpcs'
+            | 'lscsw'
+            | 'md'
+            | 'np'
           /**
            * @description The types of locations where the provider offers service
            * @enum {string}
@@ -1099,7 +1197,7 @@ export interface operations {
         provider_uuid: components['schemas']['Uuid']
         /** @description Two-letter state code (e.g., "CA" for California). */
         two_letter_state: string
-        /** @description A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 25 hours from now through 28 days out. No maximum window is enforced, but start cannot be less than 25 hours from now, as this is outside of the bookable range. */
+        /** @description A [start, end] pair of ISO 8601 datetime strings defining the window to fetch slots within. The first element is the start (inclusive) and the second is the end (inclusive). Filters by slot start time. When omitted, defaults to 28 days out. No maximum window is enforced. Slots that start less than 25 hours from now are outside the bookable range and are omitted from the results; a range that falls entirely inside that window returns an empty slots array rather than an error. */
         start_time_range?: string[]
         /** @description Array of location types to filter appointment slots by (in-person vs virtual). */
         location_type: ('in_person' | 'telemedicine')[]

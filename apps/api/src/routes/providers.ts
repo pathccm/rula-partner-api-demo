@@ -1,6 +1,14 @@
 import type { FastifyInstance } from 'fastify'
 import { config, hasCredentials } from '../config.js'
-import { GENDER_MAP, LANGUAGE_MAP, RACE_MAP, SPECIALIZATION_MAP } from '../filterMaps.js'
+import {
+  ALLYSHIP_MAP,
+  FAITH_MAP,
+  GENDER_MAP,
+  LANGUAGE_MAP,
+  LICENSE_MAP,
+  RACE_MAP,
+  SPECIALIZATION_MAP,
+} from '../filterMaps.js'
 import { mockHandlers } from '../plugins/mockHandler.js'
 import { partnerApiClient } from '../services/partnerApiClient.js'
 import type {
@@ -22,6 +30,9 @@ export async function providersRoutes(app: FastifyInstance) {
       ...(body.specialization != null && {
         specialization: SPECIALIZATION_MAP[body.specialization] ?? body.specialization,
       }),
+      ...(body.faith != null && { faith: FAITH_MAP[body.faith] ?? body.faith }),
+      ...(body.allyship != null && { allyship: ALLYSHIP_MAP[body.allyship] ?? body.allyship }),
+      ...(body.license != null && { license: LICENSE_MAP[body.license] ?? body.license }),
     }
     return partnerApiClient.request<ProvidersSearchResponse>('/v1/providers/search', {
       method: 'POST',
