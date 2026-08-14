@@ -368,6 +368,8 @@ curl --silent --request GET \
 }
 ```
 
+`cancellation_reason` is included when `status` is `"canceled"` and a reason was recorded on cancellation.
+
 ---
 
 ### 7. Cancel an Appointment
@@ -412,7 +414,8 @@ curl --silent --request PUT \
   "end_time": "2026-03-02T16:00:00Z",
   "status": "canceled",
   "appointment_type": "telemedicine",
-  "therapy_type": "individual"
+  "therapy_type": "individual",
+  "cancellation_reason": "Patient requested cancellation"
 }
 ```
 
