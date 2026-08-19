@@ -718,6 +718,18 @@
   color: #b91c1c;
 }
 
+.error-banner--provider-mismatch {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.error-banner--restricted {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  color: #6b7280;
+}
+
 .error-action {
   background: none;
   border: 1px solid currentColor;

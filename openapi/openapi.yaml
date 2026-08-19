@@ -1,274 +1,21 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 0.26.1
+  version: 1.0.0
   description: >
-    Rula's API for partners. This API is currently a WIP and may change at any time.
+    Rula's API for partners.
 
     Updates:
 
-    v0.26.1
+    v1.0.0
       Changelog:
-        + GET /v1/providers/slots now filters out slots inside the 25-hour minimum booking window instead of rejecting the request
-        + A start_time_range starting less than 25 hours from now returns 200 with only bookable slots (an empty array if none remain), rather than a 422 error
-
-    v0.26.0
-      Changelog:
-        + Added optional channel field to POST /v1/patients and POST /v1/appointment
-
-    v0.25.7
-      Changelog:
-        + Added license filter to POST /v1/providers/search request
-        + Added licenses to the GET /v1/providers/{uuid} response
-
-    v0.25.6
-      Changelog:
-        + Added faith and allyship filters to POST /v1/providers/search request
-
-    v0.25.5
-      Changelog:
-        + Added faiths and allyships to GET /v1/providers/{uuid} response
-
-    v0.25.4
-      Changelog:
-        + Updated the production URL to match the actual deployed production URL
-
-    v0.25.3
-      Changelog:
-        + Added optional secondary_insurance to POST /v1/providers/search to filter by a second insurance carrier
-
-    v0.25.2
-      Changelog:
-        + Added npi field to GET /v1/providers/{uuid} response
-
-    v0.25.1
-      Changelog:
-        + Added specialization value: first_responders
-        + Added language value: suzhou
-        + Marked deprecated specialization values (chronic_impulsivity, chronic_relapse, drug_abuse, impulsivity, job_stress, legal_stress, military_and_veterans, racial_trauma), race value (other), and language values (not_listed, other)
-        + Deprecated values will remain accepted but are no longer supported for filtering
-
-    v0.25.0
-      Changelog:
-        + Added stricter validation to POST /v1/patients so that providing EAP info not needed for an EAP referral will error (e.g. providing number_of_authorized_sessions for EAP that is not session limited)
-
-    v0.24.1
-      Changelog:
-        + Added optional `guardian_type` field to guardian object on POST /v1/patients (enum: parent | medical, defaults to parent)
-
-    v0.24.0
-      Changelog:
-        + Standardized POST /v1/providers/search filter enum values to short lowercase keys for gender, race, language, specialization, and modality (e.g. "female" instead of "Female", "cognitive_behavioral" instead of "Cognitive Behavioral (CBT)")
-        + Added genders, races, languages, specializations, and modalities to GET /v1/providers/{uuid} response
-
-    v0.23.5
-      Changelog:
-        + Changed POST /v1/patients response for identification and insurance validation failures from 502 to 422
-
-    v0.23.4
-      Changelog:
-        + Additional clarification on start_time_range description on GET /v1/providers/slots
-        + GET /v1/providers/slots no longer allows a start in start_time_range outside of bookable range
-        + I.E. less than 25 hours from now
-
-    v0.23.3
-      Changelog:
-        + Fixed is_eap_referral conditional validation to allow true when is_self_pay is not provided
-        + Added custom error messages for if conditional failures for PatientCreateRequest
-
-    v0.23.2
-      Changelog:
-        + Clarified start_time_range description on GET /v1/providers/slots
-        + Improved descriptions across multiple fields for clarity
-        + Added minItems/maxItems: 2 constraint to start_time_range on GET /v1/providers/slots
-
-    v0.23.1
-      Changelog:
-        + Removed request-start-time header parameter from spec (now handled at the gateway level)
-
-    v0.23.0
-      Changelog:
-        + Added optional is_self_pay boolean field to PatientCreateRequest (default: false)
-        + insurance_id is now only required when is_self_pay is false
-        + subscriber_id is now only required when is_eap_referral is false and is_self_pay is false
-        + is_eap_referral must be false when is_self_pay is true
-
-    v0.22.0
-      Changelog:
-        + Added PUT /v1/appointments/{uuid}/cancel endpoint to cancel an appointment
-
-    v0.21.1
-      Changelog:
-        + Added request-start-time as an accepted optional header on all endpoints
-
-    v0.21.0
-      Changelog:
-        + Added GET /v1/appointments/{uuid} endpoint to retrieve a single appointment
-        + Extracted shared Appointment schema used by PatientAppointmentsResponse and AppointmentShowResponse
-
-    v0.20.1
-      Changelog:
-        + Add upcoming_insurance as an optional parameter in employee_assistance_program
-
-    v0.20.0
-      Changelog:
-        + Clarified that subscriber_id is required for POST /v1/patients when is_eap_referral is false
-        + Added conditional schema validation to enforce subscriber_id when is_eap_referral is false
-
-    v0.19.0
-      Changelog:
-        + The email and phone_number of a minor patient must now match their guardian's for POST /v1/patients
-        + Updated description of email and phone_number fields for POST /v1/patients to reflect this
-
-    v0.18.0
-      Changelog:
-        + Added willing_to_see to GET /v1/providers/{uuid} response
-        + Standardized willing_to_see enum values to short lowercase keys across all endpoints
-          (e.g., "Minors (13-17)" → "minors", "Children (5-7)" → "children")
-
-    v0.17.0
-      Changelog:
-        + Added environment-specific OAuth scopes (partner_api:production, partner_api:staging).
-          All tokens must now include the scope matching the target environment in addition to
-          the endpoint's functional scope(s).
-
-    v0.16.0
-      Changelog:
-        + Renamed carrier_uuid to id in GET /v1/insurances response
-
-    v0.15.1
-      Changelog:
-        + Adds traced_id to BadGatewayError
-
-    v0.15.0
-      Changelog:
-        + Updated GET /v1/insurances endpoint. Added carrier_uuid to response and optional state filter parameter.
-        + Updated POST /v1/patients endpoint to take insurance_id instead of insurance.
-
-    v0.14.5
-      Changelog:
-        + Added active_states to GET /v1/providers/{uuid} response
-
-    v0.14.4
-      Changelog:
-        + Explicitly add minLength: 1 to required string fields in POST /v1/patients
-        + Add pattern for location and address.state for POST /v1/patients
-
-    v0.14.3
-      Changelog:
-        + Malformed JSON request bodies now return 400 instead of 500
-
-    v0.14.2
-      Changelog:
-        + Added trace_id to InternalServerError (500) error responses
-
-    v0.14.1
-      Changelog:
-        - Removed deprecated specialty enum values: Adolescents/Teens, Children, Dual Diagnosis, Emotional Disturbance, Life Coaching, Marital/Pre-marital, Sexual Orientation, Teen Violence
-        - Removed deprecated modality enum values: Eclectic, Integrative
-
-    v0.14.0
-      Changelog:
-        + Made first_name, last_name, email, and phone_number required fields within the guardian object on POST /v1/patients
-
-    v0.13.1
-      Changelog:
-        + Updated descriptions for /v1/providers/search availability fields
-        + Updated /v1/providers/search to return 422 with proper message when conflicting availability parameters are provided.
-
-    v0.13.0
-      Changelog:
-        + Added RequestValidationError as a possible schema for 422 response on POST /v1/patients (in addition to UnprocessableEntityError)
-
-    v0.12.0
-      Changelog:
-        + Added 404 as a possible response for GET /v1/patients/{uuid}/appointments (Patient not found)
-        + Added 401 as a possible response for GET /v1/patients/{uuid}/appointments (Unauthorized)
-
-    v0.11.0
-      Changelog:
-        + Added 422 as a possible response for POST /v1/patients (Unprocessable Entity for business logic validation failures)
-        + Added 502 as a possible response for POST /v1/patients (Bad Gateway for external service failures)
-        + Removed 403 as a possible response for POST /v1/patients (replaced by 422 for validation failures)
-        + Removed unused error schema for ForbiddenError
-
-    v0.10.0
-      Changelog:
-        + Added 422 Unprocessable Entity as a possible response for all endpoints with request validation
-
-    v0.9.0
-      Changelog:
-        + Added 404, 406, 409, and 422 as possible responses for appointmentsCreate
-
-    v0.8.0
-      Changelog:
-        + Made location_type a required parameter for GET /v1/providers/slots
-        + Added uniqueItems constraint to location_type parameter for GET /v1/providers/slots
-        + Added minItems: 1 constraint to location_type parameter for GET /v1/providers/slots
-        + Added style: form and explode: true to location_type parameter for GET /v1/providers/slots to explicitly specify repeated query parameter format (location_type=a&location_type=b)
-
-    v0.7.0
-      Changelog:
-        + Added 403 as a possible response for patientCreate
-
-    v.0.6.1
-      Changelog:
-        + Adds a default value for the care_category field in ProvidersSearchRequest
-
-    v0.6.0
-      Changelog:
-        + Corrected spelling of therapy_type as a required param for PatientAppointmentsResponse
-
-    v0.5.4
-      Changelog:
-        + Updated the staging URL to match the actual deployed staging URL
-
-    v0.5.3
-      Changelog:
-        + Commented out the production and local servers to work with downstream CI/CD pipeline. URLs are still in process of being generated/confirmed.
-
-    v0.5.2
-      Changelog:
-        + Adds error responses to endpoints, including 400 Bad Request and 500 Internal Server Error.
-
-    v0.5.1
-      Changelog:
-        + Added coverage_type to ProvidersSearchRequest
-
-    v0.5.0
-      Updated operational version for partners.
-      Rula will adopt the following versioning until v1.0:
-        + Breaking changes (ie: Adding a required field to a request) will be considered a minor version bump (ie: 0.5.0 -> 0.6.0)
-          + During development, we will do our best to limit these and provide adequate notification
-        + Non-breaking changes (ie: adding a field to a response, or adding an optional field to a request) will be considered a patch version bump (ie: 0.5.0 -> 0.5.1)
-      Planned changes:
-        + Server URLs are still proposed, actual URLs will be known once infra is in place, at which time they will be replaced with the full URLs.
-        + Error codes and responses will be added as dependent service requirements are translated
-      Changelog:
-        + Removed partner_name as a parameter for PatientCreateRequest
-        + Added a new required parameter care_types to PatientCreateRequest
-        + Updated employee_assistance_program to require authorization_number for PatientCreateRequest
-
-    v0.4.0
-      Initial operational version for partners.
-      This is the first managed release that will follow semver.
-      Rula will adopt the following versioning until v1.0:
-        + Breaking changes (ie: Adding a required field to a request) will be considered a minor version bump (ie: 0.4.0 -> 0.5.0)
-          + During development, we will do our best to limit these and provide adequate notification
-        + Non-breaking changes (ie: adding a field to a response, or adding an optional field to a request) will be considered a patch version bump (ie: 0.4.0 -> 0.4.1)
-      Planned changes:
-        + Server URLs are still proposed, actual URLs will be known once infra is in place, at which time they will be replaced with the full URLs.
-        + Error codes and responses will be added as dependent service requirements are translated
-      Changelog:
-        + Changed API spec management - This will result in a significantly different structure/layout than previous versions, and additional changes that may not be noted below
-        + Added the live production OAuth2 security scheme information
-        + Added providersSlots
-        + Removed appointmentsShow (not slated for initial release)
-        + Removed appointmentUpdate (not slated for initial release)
-        + Removed appointmentCancel (not slated for initial release)
-        + Removed eventNotificationShow (not slated for initial release)
-        + Removed patientShow (not slated for initial release)
-        + Removed aptientSurveysIndex (not slated for initial release)
+        + Promoted the API to 1.0.0
+      v1.x.x versioning:
+        + Breaking changes are a major version bump (1.0.0 -> 2.0.0) and will require partner
+          coordination plus a minimum 6-month deprecation window for the superseded version.
+        + Backwards-compatible additions (new optional request fields, new response fields)
+          are a minor version bump (1.0.0 -> 1.1.0).
+        + Backwards-compatible fixes and clarifications are a patch version bump (1.0.0 -> 1.0.1).
 
 servers:
   - url: https://api.prod.rula.com/edge/partner-scheduling-api-server-production
@@ -648,31 +395,70 @@ paths:
         "401":
           description: Unauthorized, invalid or expired token
         "404":
-          description: Not Found Error
+          description: >
+            A referenced entity was not found. Branch on the `message`. See examples for
+            scenarios by partner action.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundError"
-        "406":
-          description: Not Acceptable
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotAcceptableError"
-        "409":
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ConflictError"
+              examples:
+                patientNotFound:
+                  summary: Patient could not be resolved - not slot-fixable
+                  value:
+                    message: Patient not found
+                providerNotFound:
+                  summary: Provider not found - try a different slot or provider
+                  value:
+                    message: Provider not found for requested appointment
+                slotNotFound:
+                  summary: Slot no longer available - try a different slot
+                  value:
+                    message: Slot not found for requested appointment
         "422":
-          description: Unprocessable Entity
+          description: >
+            Request-body validation failure or a business-rule rejection from booking. Does not
+            return 406 or 409; branch on the `message`. See examples for scenarios by partner action.
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "#/components/schemas/RequestValidationError"
-                  - $ref: "#/components/schemas/UnprocessableEntityError"
+                $ref: "#/components/schemas/RequestValidationError"
+              examples:
+                timeConflict:
+                  summary: Time overlaps an existing appointment - try a different slot
+                  value:
+                    message: Appointment time conflict
+                slotTooSoon:
+                  summary: Slot is inside the 25-hour booking window - try a different slot
+                  value:
+                    message: Cannot create hold for time slot less than 25 hours in advance
+                providerNotWilling:
+                  summary: Provider does not see this age group - book with a different provider
+                  value:
+                    message: Provider is not willing to see adults
+                providerRoleMismatch:
+                  summary: Provider role does not match appointment type - book with a different provider
+                  value:
+                    message: Provider is a therapist but appointment is for psychiatry
+                providerInsurance:
+                  summary: Provider does not take patient's insurance - book with a different provider
+                  value:
+                    message: Provider does not take patient's insurance
+                providerNotBookable:
+                  summary: Provider not active for the region - book with a different provider
+                  value:
+                    message: Provider is not currently available to be booked
+                patientRestricted:
+                  summary: Patient is restricted from scheduling - direct patient to contact Rula support
+                  value:
+                    message: This patient has been restricted from scheduling appointments
+                validationError:
+                  summary: Request body failed validation - fix the request and retry
+                  value:
+                    message: Invalid request
+                    errors:
+                      - field: appointment_slot
+                        message: must be a valid ISO 8601 date-time
         "500":
           description: Internal Server Error
           content:
@@ -1967,6 +1753,12 @@ components:
             - family
             - couples
             - psychiatric
+        cancellation_reason:
+          description: >
+            Freeform text detailing why the appointment was cancelled, as originally submitted to
+            PUT /v1/appointments/{uuid}/cancel. Only present when status is "canceled" and a reason
+            was recorded.
+          type: string
       required:
         - appointment_id
         - provider_id
@@ -2029,22 +1821,6 @@ components:
         message:
           type: string
           example: Not Found
-      required:
-        - message
-    NotAcceptableError:
-      type: object
-      properties:
-        message:
-          type: string
-          example: Not Acceptable
-      required:
-        - message
-    ConflictError:
-      type: object
-      properties:
-        message:
-          type: string
-          example: Conflict
       required:
         - message
   securitySchemes:

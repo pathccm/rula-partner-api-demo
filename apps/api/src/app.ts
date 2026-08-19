@@ -67,7 +67,15 @@ export async function buildApp(
   }
 
   app.setErrorHandler(
-    (error: Error & { statusCode?: number; status?: number }, _request, reply) => {
+    (
+      error: Error & {
+        statusCode?: number
+        status?: number
+        errors?: { field: string; message: string }[]
+      },
+      _request,
+      reply,
+    ) => {
       app.log.error(error)
       const statusCode =
         typeof error.statusCode === 'number'
@@ -75,7 +83,7 @@ export async function buildApp(
           : typeof error.status === 'number'
             ? error.status
             : 500
-      reply.status(statusCode).send({ error: error.message })
+      reply.status(statusCode).send({ message: error.message, errors: error.errors })
     },
   )
 

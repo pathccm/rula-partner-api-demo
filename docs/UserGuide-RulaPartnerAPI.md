@@ -332,6 +332,22 @@ curl --silent --request POST \
 
 > **Note:** `status` will be `"held"` initially. It transitions to `"confirmed"` once the appointment is fully confirmed.
 
+**Error handling:** this endpoint does not return `406` or `409`. On `404` or `422`, branch on the response body's `message` rather than the status code alone — the same status covers several distinct scenarios:
+
+| `message`                                                              | Meaning                             |
+| ----------------------------------------------------------------------| ------------------------------------|
+| `Patient not found`                                                    | Not fixable by retrying with a new slot — the patient record itself couldn't be resolved. |
+| `Provider not found for requested appointment`                        | Try a different slot or provider.   |
+| `Slot not found for requested appointment`                            | Try a different slot.               |
+| `Appointment time conflict`                                            | Try a different slot.               |
+| `Cannot create hold for time slot less than 25 hours in advance`      | Try a different slot.               |
+| `Provider is not willing to see <age group>`                          | Book with a different provider.     |
+| `Provider is a <role> but appointment is for <type>`                   | Book with a different provider.     |
+| `Provider does not take patient's insurance`                          | Book with a different provider.     |
+| `Provider is not currently available to be booked`                    | Book with a different provider.     |
+| `This patient has been restricted from scheduling appointments`       | Direct the patient to contact Rula support. |
+| `Invalid request` (with an `errors` array)                            | Fix the request body and retry.     |
+
 ---
 
 ### 6. Get an Appointment
@@ -367,6 +383,8 @@ curl --silent --request GET \
   "therapy_type": "individual"
 }
 ```
+
+`cancellation_reason` is included when `status` is `"canceled"` and a reason was recorded on cancellation.
 
 ---
 
@@ -412,7 +430,8 @@ curl --silent --request PUT \
   "end_time": "2026-03-02T16:00:00Z",
   "status": "canceled",
   "appointment_type": "telemedicine",
-  "therapy_type": "individual"
+  "therapy_type": "individual",
+  "cancellation_reason": "Patient requested cancellation"
 }
 ```
 
@@ -481,8 +500,6 @@ curl --silent --request GET \
 | `401`       | Unauthorized — token is missing, invalid, or expired    |
 | `403`       | Forbidden — token lacks required scope                  |
 | `404`       | Not Found — resource does not exist                     |
-| `406`       | Not Acceptable — slot is no longer available            |
-| `409`       | Conflict — appointment already exists for this slot     |
 | `422`       | Unprocessable Entity — business logic validation failed |
 | `500`       | Internal Server Error                                   |
 

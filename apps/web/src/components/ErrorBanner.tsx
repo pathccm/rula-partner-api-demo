@@ -14,6 +14,11 @@ export function ErrorBanner({ error, onDismiss }: ErrorBannerProps) {
           Pick another slot
         </button>
       )}
+      {error.type === 'provider-mismatch' && onDismiss && (
+        <button type="button" className="error-action" onClick={onDismiss}>
+          Pick another provider
+        </button>
+      )}
       {error.type === 'upstream' && onDismiss && (
         <button type="button" className="error-action" onClick={onDismiss}>
           Retry
