@@ -1,11 +1,18 @@
 import config from './config'
 
+export interface ApiErrorDetail {
+  field: string
+  message: string
+}
+
 export class ApiError extends Error {
   readonly status: number
-  constructor(status: number, message: string) {
+  readonly errors?: ApiErrorDetail[]
+  constructor(status: number, message: string, errors?: ApiErrorDetail[]) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.errors = errors
   }
 }
 
@@ -19,8 +26,23 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     },
   })
   if (!res.ok) {
-    const body = await res.text()
-    throw new ApiError(res.status, body || res.statusText)
+    const text = await res.text()
+    let message = text || res.statusText
+    let errors: ApiErrorDetail[] | undefined
+    if (text) {
+      try {
+        const parsed = JSON.parse(text) as {
+          message?: string
+          error?: string
+          errors?: ApiErrorDetail[]
+        }
+        message = parsed.message || parsed.error || message
+        errors = parsed.errors
+      } catch {
+        // Body wasn't JSON — fall back to the raw text as the message.
+      }
+    }
+    throw new ApiError(res.status, message, errors)
   }
   return res.json() as Promise<T>
 }

@@ -430,9 +430,11 @@ export function SchedulingPage() {
           onDismiss={
             error.type === 'conflict'
               ? () => setStep('slots')
-              : error.type === 'upstream'
-                ? () => setError(null)
-                : undefined
+              : error.type === 'provider-mismatch'
+                ? () => setStep('providers')
+                : error.type === 'upstream'
+                  ? () => setError(null)
+                  : undefined
           }
         />
       )}

@@ -1,5 +1,5 @@
 import { config } from '../config.js'
-import { PartnerApiError } from '../errors.js'
+import { PartnerApiError, type PartnerApiErrorDetail } from '../errors.js'
 import { getPartnerToken } from './tokenService.js'
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -30,8 +30,19 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (!res.ok) {
-    const body = await res.text()
-    throw new PartnerApiError(res.status, body || res.statusText)
+    const text = await res.text()
+    let message = text || res.statusText
+    let errors: PartnerApiErrorDetail[] | undefined
+    if (text) {
+      try {
+        const parsed = JSON.parse(text) as { message?: string; errors?: PartnerApiErrorDetail[] }
+        message = parsed.message || message
+        errors = parsed.errors
+      } catch {
+        // Upstream body wasn't JSON — fall back to the raw text as the message.
+      }
+    }
+    throw new PartnerApiError(res.status, message, errors)
   }
 
   return res.json() as Promise<T>

@@ -377,8 +377,10 @@ describe('SchedulingPage — step 5: slots', () => {
 // ─── Error handling ───────────────────────────────────────────────────────────
 
 describe('SchedulingPage — error handling', () => {
-  it('shows conflict error style for 409', async () => {
-    mockApi.searchProviders.mockRejectedValue(new ApiError(409, 'Slot taken'))
+  it('shows conflict error style when a slot is no longer available', async () => {
+    mockApi.searchProviders.mockRejectedValue(
+      new ApiError(404, 'Slot not found for requested appointment'),
+    )
     await selectInsurance('Aetna')
     await waitFor(() => screen.getByText('Find providers'))
     await userEvent.click(screen.getByText('Find providers'))

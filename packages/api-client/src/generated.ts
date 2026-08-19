@@ -197,6 +197,8 @@ export interface components {
        * @enum {string}
        */
       therapy_type: 'individual' | 'family' | 'couples' | 'psychiatric'
+      /** @description Freeform text detailing why the appointment was cancelled, as originally submitted to PUT /v1/appointments/{uuid}/cancel. Only present when status is "canceled" and a reason was recorded. */
+      cancellation_reason?: string
     }
     /** Format: uuid */
     Uuid: string
@@ -228,14 +230,6 @@ export interface components {
     }
     NotFoundError: {
       /** @example Not Found */
-      message: string
-    }
-    NotAcceptableError: {
-      /** @example Not Acceptable */
-      message: string
-    }
-    ConflictError: {
-      /** @example Conflict */
       message: string
     }
   }
@@ -1495,7 +1489,7 @@ export interface operations {
         }
         content?: never
       }
-      /** @description Not Found Error */
+      /** @description A referenced entity was not found. Branch on the `message`. See examples for scenarios by partner action. */
       404: {
         headers: {
           [name: string]: unknown
@@ -1504,33 +1498,13 @@ export interface operations {
           'application/json': components['schemas']['NotFoundError']
         }
       }
-      /** @description Not Acceptable */
-      406: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['NotAcceptableError']
-        }
-      }
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ConflictError']
-        }
-      }
-      /** @description Unprocessable Entity */
+      /** @description Request-body validation failure or a business-rule rejection from booking. Does not return 406 or 409; branch on the `message`. See examples for scenarios by partner action. */
       422: {
         headers: {
           [name: string]: unknown
         }
         content: {
-          'application/json':
-            | components['schemas']['RequestValidationError']
-            | components['schemas']['UnprocessableEntityError']
+          'application/json': components['schemas']['RequestValidationError']
         }
       }
       /** @description Internal Server Error */

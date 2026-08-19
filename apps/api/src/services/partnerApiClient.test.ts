@@ -78,6 +78,33 @@ describe('partnerApiClient.request', () => {
     expect((err as PartnerApiError).message).toBe('Validation failed')
   })
 
+  it('extracts message and errors from a JSON error body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        text: () =>
+          Promise.resolve(
+            JSON.stringify({
+              message: 'Invalid request',
+              errors: [
+                { field: 'appointment_slot', message: 'must be a valid ISO 8601 date-time' },
+              ],
+            }),
+          ),
+      }),
+    )
+
+    const err = await partnerApiClient.request('/v1/appointments').catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(PartnerApiError)
+    expect((err as PartnerApiError).message).toBe('Invalid request')
+    expect((err as PartnerApiError).errors).toEqual([
+      { field: 'appointment_slot', message: 'must be a valid ISO 8601 date-time' },
+    ])
+  })
+
   it('returns parsed JSON on success', async () => {
     const payload = { uuid: 'abc-123' }
     vi.stubGlobal(
