@@ -1,11 +1,15 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 1.0.0
+  version: 1.0.1
   description: >
     Rula's API for partners.
 
     Updates:
+
+    v1.0.1
+      Changelog:
+        + Added a top-level security requirement matching every operation's existing auth0 requirement. This doesn't change enforcement (every operation already declares its own security, which takes precedence) — it lets tools that only read top-level security, such as Postman's OpenAPI importer, apply OAuth2 to the whole collection instead of leaving every request unauthenticated by default.
 
     v1.0.0
       Changelog:
@@ -28,6 +32,10 @@ servers:
   #   description: Local development URL
   #   x-internal: true
 tags: []
+
+# Fallback for any operation that omits its own `security:` — every current operation declares one and takes precedence over this (fastify-openapi-glue: `operationSpec.security || this.spec.security`). Its main purpose is letting tools that only read top-level security (e.g. Postman's OpenAPI importer) apply OAuth2 to the whole collection instead of leaving every request unauthenticated.
+security:
+  - auth0: []
 
 paths:
   /v1/insurances:
