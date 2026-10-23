@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
-    "@fastify/static": "^9.1.1",
+    "@fastify/static": "^10.1.2",
     "@partner-scheduling-demo/api-client": "workspace:*",
     "fastify": "^5.8.5",
     "pino": "^10.3.1",
