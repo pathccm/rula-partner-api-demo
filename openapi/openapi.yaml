@@ -1,11 +1,28 @@
 openapi: 3.1.0
 info:
   title: Rula Partner API
-  version: 1.0.1
+  version: 1.3.0
   description: >
     Rula's API for partners.
 
     Updates:
+
+    v1.3.0
+      Changelog:
+        + Added optional city, city_state and years_of_experience to the GET /v1/providers/{uuid} response. Returned only for partners they're enabled for.
+
+    v1.2.0
+      Changelog:
+        + Added optional style_tags to the GET /v1/providers/{uuid} response and to the POST /v1/providers/search response providers. Returned only for partners it's enabled for.
+
+    v1.1.0
+      Changelog:
+        + Added nullable npi to the POST /v1/providers/search response providers.
+
+    v1.0.2
+      Changelog:
+        + Documented that the token request must include `audience=https://api.prod.rula.com/`.
+        + Correction to v1.0.1: requests weren't left unauthenticated before that change. Importing the spec gave, and still gives, each request its own OAuth2 settings. In Postman, turn on "Always inherit authentication" when generating the collection so every request uses the collection-level settings instead.
 
     v1.0.1
       Changelog:
@@ -33,7 +50,7 @@ servers:
   #   x-internal: true
 tags: []
 
-# Fallback for any operation that omits its own `security:` — every current operation declares one and takes precedence over this (fastify-openapi-glue: `operationSpec.security || this.spec.security`). Its main purpose is letting tools that only read top-level security (e.g. Postman's OpenAPI importer) apply OAuth2 to the whole collection instead of leaving every request unauthenticated.
+# Lets tools that read only top-level security (e.g. Postman's OpenAPI importer) populate collection-level auth. Keep each operation's own security block: its scope list is what src/security/auth0.ts enforces, and it overrides this one.
 security:
   - auth0: []
 
@@ -892,6 +909,7 @@ components:
                   - const: child_abuse_or_neglect
                   - const: chronic_illness
                   - const: chronic_pain
+                  - const: chronic_impulsivity
                   - const: codependency
                   - const: coping_skills
                   - const: cultural_stress
@@ -901,6 +919,7 @@ components:
                   - const: dissociative_disorders
                   - const: divorce
                   - const: domestic_violence
+                  - const: drug_abuse
                   - const: eating_disorders
                   - const: family_conflict
                   - const: first_responders
@@ -909,11 +928,14 @@ components:
                   - const: grief
                   - const: hoarding
                   - const: impulse_control_disorders
+                  - const: impulsivity
                   - const: infertility
                   - const: infidelity
                   - const: intellectual_disability
                   - const: internet_addiction
+                  - const: job_stress
                   - const: learning_disabilities
+                  - const: legal_stress
                   - const: lgbtqia
                   - const: life_transitions
                   - const: mens_issues
@@ -950,22 +972,7 @@ components:
                   - const: video_game_addiction
                   - const: weight_loss
                   - const: womens_issues
-                  - const: chronic_impulsivity
-                    deprecated: true
-                    description: DEPRECATED
                   - const: chronic_relapse
-                    deprecated: true
-                    description: DEPRECATED
-                  - const: drug_abuse
-                    deprecated: true
-                    description: DEPRECATED
-                  - const: impulsivity
-                    deprecated: true
-                    description: DEPRECATED
-                  - const: job_stress
-                    deprecated: true
-                    description: DEPRECATED
-                  - const: legal_stress
                     deprecated: true
                     description: DEPRECATED
                   - const: military_and_veterans
@@ -979,6 +986,7 @@ components:
                 type: string
                 enum:
                   - accelerated_experiential_dynamic_psychotherapy
+                  - accelerated_resolution_therapy
                   - acceptance_and_commitment
                   - art_therapy
                   - attachment_based
@@ -996,6 +1004,7 @@ components:
                   - dialectical
                   - emdr
                   - emotionally_focused_therapy
+                  - existential
                   - experiential_therapy
                   - exposure_and_response_prevention
                   - expressive_arts
@@ -1026,6 +1035,7 @@ components:
                   - sex_therapy
                   - solution_focused_brief
                   - somatic
+                  - structural_family_therapy
                   - trauma_focused
                   - trust_based_relational_intervention
               willing_to_see:
@@ -1445,6 +1455,11 @@ components:
                       description: The unique identifier for the provider
                       allOf:
                         - $ref: "#/components/schemas/Uuid"
+                    npi:
+                      description: National Provider Identifier
+                      type: string
+                      nullable: true
+                      example: "1234567890"
                     first_name:
                       description: The provider's first name
                       type: string
@@ -1467,6 +1482,17 @@ components:
                       type: array
                       items:
                         type: string
+                    style_tags:
+                      description: >
+                        The provider's style tags as display names, in the order therapeutic style, tone and energy,
+                        relational approach. Tags the provider hasn't set are left out, so the list can be empty.
+                        Returned only for partners it's enabled for, and left out if the tags can't be looked up.
+                      type: array
+                      maxItems: 3
+                      items:
+                        type: string
+                        maxLength: 100
+                      example: ["Candid", "Warm", "Collaborative"]
                     slot_start_time:
                       description: The start time of the provider's earliest available slot.
                       type: string
@@ -1661,6 +1687,40 @@ components:
                 type: string
                 nullable: true
                 example: "1234567890"
+              style_tags:
+                description: >
+                  The provider's style tags as display names, in the order therapeutic style, tone and energy,
+                  relational approach. Tags the provider hasn't set are left out, so the list can be empty.
+                  Returned only for partners it's enabled for, and left out if the tags can't be looked up.
+                type: array
+                maxItems: 3
+                items:
+                  type: string
+                  maxLength: 100
+                example: ["Candid", "Warm", "Collaborative"]
+              city:
+                description: >
+                  The city the provider practices in, as shown on their public rula.com profile: their
+                  in-person office, or for virtual-only therapists the city they've made public. Left out
+                  when there isn't one. Returned only for partners it's enabled for.
+                type: string
+                maxLength: 100
+                example: "Oakland"
+              city_state:
+                description: Two-letter state code of `city`. Present whenever `city` is.
+                type: string
+                maxLength: 2
+                pattern: "^[A-Z]{2}$"
+                example: "CA"
+              years_of_experience:
+                description: >
+                  Whole years since the provider's oldest primary license was issued, as shown on rula.com.
+                  Left out when it's under a year or unknown. Returned only for partners it's enabled for.
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 100
+                example: 12
             required:
               - id
               - first_name
@@ -1835,10 +1895,7 @@ components:
     auth0:    # <---- arbitrary name
       type: oauth2
       description: >-
-        This API uses OAuth 2 with the client credentials flow.
-        In addition to the endpoint-specific functional scope(s), every token must include
-        the environment scope matching the target environment:
-        `partner_api:production` for production, or `partner_api:staging` for staging.
+        This API uses OAuth 2 with the client credentials flow. The token request must include `audience=https://api.prod.rula.com/`; tokens requested without it aren't accepted by this API. In addition to the endpoint-specific functional scope(s), every token must include the environment scope matching the target environment: `partner_api:production` for production, or `partner_api:staging` for staging.
       flows:
         clientCredentials:
           tokenUrl: https://login.rula.com/oauth/token
