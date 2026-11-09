@@ -158,7 +158,70 @@ curl --silent --request POST \
 
 ---
 
-### 3. Get Provider Slots
+### 3. Get a Provider
+
+Returns profile details for a specific provider.
+
+- **Method:** `GET`
+- **Path:** `/v1/providers/{uuid}`
+- **Auth scope:** `partner_api:providers:read`
+
+| Path Parameter | Required | Description                                    |
+| -------------- | -------- | ---------------------------------------------- |
+| `uuid`         | Yes      | Provider `id` from `POST /v1/providers/search` |
+
+**Request:**
+
+```bash
+curl --silent --request GET \
+  --url 'https://api.prod.rula.com/edge/partner-scheduling-api-server-staging/v1/providers/fe6e1131-6fdd-4089-8c7f-b6eef7852f75' \
+  --header 'Authorization: Bearer <token>' | jq
+```
+
+**Response:**
+
+```json
+{
+  "id": "fe6e1131-6fdd-4089-8c7f-b6eef7852f75",
+  "first_name": "Shawndra",
+  "last_name": "Williams",
+  "profile_image_url": "https://provider-headshots.s3.us-west-2.amazonaws.com/...",
+  "profile_bio": "",
+  "profile_summary": "",
+  "profile_approach": "",
+  "profile_focus": "",
+  "profile_journey": "",
+  "profile_goals": "",
+  "profile_first_session": "",
+  "role_string": "Therapist",
+  "insurances": ["Aetna", "Blue Cross Blue Shield"],
+  "active_states": ["CA"],
+  "willing_to_see": ["adults", "individuals"],
+  "genders": ["Female"],
+  "races": ["Black or African American"],
+  "languages": ["English"],
+  "specializations": ["anxiety", "depression"],
+  "modalities": ["cognitive_behavioral"],
+  "faiths": [],
+  "allyships": [],
+  "licenses": ["lcsw"],
+  "npi": "1234567890"
+}
+```
+
+> **Note:** `insurances` lists the networks the provider accepts, minus any network the partner hasn't
+> allowed Rula to advertise. The provider can still be booked with those networks.
+>
+> These are display names (e.g. `"Aetna"`), not the `network_name` values from `GET /v1/insurances`
+> (e.g. `"aetna"`), and the two don't always match even ignoring case. Use them for display. To check
+> whether a provider takes an insurance, pass its `network_name` to `POST /v1/providers/search`.
+>
+> `style_tags`, `city`, `city_state`, `years_of_experience`, and `top_specializations` are returned only
+> for partners they're enabled for.
+
+---
+
+### 4. Get Provider Slots
 
 Returns available appointment slots for a specific provider.
 
@@ -206,7 +269,7 @@ curl --silent --request GET \
 
 ---
 
-### 4. Create a Patient
+### 5. Create a Patient
 
 Registers a new patient in the Rula system.
 
@@ -283,7 +346,7 @@ curl --silent --request POST \
 
 ---
 
-### 5. Create an Appointment
+### 6. Create an Appointment
 
 Books an appointment slot for a patient with a provider.
 
@@ -334,7 +397,7 @@ curl --silent --request POST \
 
 ---
 
-### 6. Get an Appointment
+### 7. Get an Appointment
 
 Retrieves the current state of a single appointment by its UUID.
 
@@ -372,7 +435,7 @@ curl --silent --request GET \
 
 ---
 
-### 7. Cancel an Appointment
+### 8. Cancel an Appointment
 
 Cancels an existing appointment.
 
@@ -421,7 +484,7 @@ curl --silent --request PUT \
 
 ---
 
-### 8. Get Patient Appointments
+### 9. Get Patient Appointments
 
 Returns all appointments for a given patient, including their current status.
 
@@ -467,11 +530,12 @@ curl --silent --request GET \
 1. Authenticate          → POST /oauth/token                      → get access_token
 2. List insurances       → GET  /v1/insurances                    → get id and network_name values
 3. Search providers      → POST /v1/providers/search              → get provider id
-4. Get provider slots    → GET  /v1/providers/slots               → get available slot times
-5. Create patient        → POST /v1/patients                      → get patient_id
-6. Book appointment      → POST /v1/appointments                  → get appointment_id
-7. Check status          → GET  /v1/appointments/{uuid}           → or GET /v1/patients/{id}/appointments
-8. Cancel if needed      → PUT  /v1/appointments/{uuid}/cancel
+4. Get provider details  → GET  /v1/providers/{uuid}              → optional: full profile
+5. Get provider slots    → GET  /v1/providers/slots               → get available slot times
+6. Create patient        → POST /v1/patients                      → get patient_id
+7. Book appointment      → POST /v1/appointments                  → get appointment_id
+8. Check status          → GET  /v1/appointments/{uuid}           → or GET /v1/patients/{id}/appointments
+9. Cancel if needed      → PUT  /v1/appointments/{uuid}/cancel
 ```
 
 ---
